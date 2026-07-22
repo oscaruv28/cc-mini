@@ -89,4 +89,4 @@ Stack: **React + Vite + TypeScript + Tailwind v4 + axios**, SPA, portal por rol.
 
 ## Anotado / fuera de alcance
 - Autorización por rol (solo hay autenticación); multi-tenancy real; portal de tickets cara-al-cliente.
-- Decisión pendiente: re-sincronizar `docs/data-model.drawio` a `uuid`/`AgentAvailability`.
+- ✅ `docs/data-model.drawio` regenerado (oscuro, `uuid`, `AgentAvailability`), coherente con el código.
