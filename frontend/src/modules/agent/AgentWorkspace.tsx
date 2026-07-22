@@ -82,6 +82,7 @@ export default function AgentWorkspace() {
           agents={[{ id: agentId, name: me.name }]}
           dispositions={dispositions}
           reloadKey={reloadKey}
+          allowStatusChange
         />
       </Card>
     </div>

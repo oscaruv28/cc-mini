@@ -16,9 +16,17 @@ interface Props {
   agents: { id: string; name: string }[];
   dispositions: Disposition[];
   reloadKey?: number;
+  /** El agente avanza el estado (flujo operativo). El admin solo edita la tipificación. */
+  allowStatusChange?: boolean;
 }
 
-export default function InteractionsPanel({ lockedAgentId, agents, dispositions, reloadKey = 0 }: Props) {
+export default function InteractionsPanel({
+  lockedAgentId,
+  agents,
+  dispositions,
+  reloadKey = 0,
+  allowStatusChange = false,
+}: Props) {
   const [status, setStatus] = useState('');
   const [type, setType] = useState('');
   const [agentId, setAgentId] = useState('');
@@ -108,7 +116,7 @@ export default function InteractionsPanel({ lockedAgentId, agents, dispositions,
                     </td>
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-2">
-                        {NEXT[it.status] && (
+                        {allowStatusChange && NEXT[it.status] && (
                           <Button variant="ghost" onClick={() => act(() => interactionsApi.changeStatus(it.type, it.id, NEXT[it.status]!))}>
                             → {NEXT[it.status]}
                           </Button>
