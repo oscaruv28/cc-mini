@@ -30,8 +30,10 @@ Requiere Docker Desktop.
 docker compose up --build
 ```
 
-Levanta **Postgres + backend + frontend**. El backend, al arrancar, **aplica migraciones y
-siembra datos** automáticamente (cientos de interacciones que cruzan medianoche).
+Levanta **Postgres + backend + frontend**. Postgres se **inicializa desde un backup**
+(`db/init/01-backup.sql`) con datos de ejemplo ya poblados —cientos de interacciones que
+cruzan medianoche, varios agentes—, de modo que el portal se ve "interactuando" desde el
+primer arranque. (Sin backup, el backend puede migrar y sembrar solo con `DB_AUTO_MIGRATE`/`DB_SEED`.)
 
 | Servicio | URL |
 |----------|-----|

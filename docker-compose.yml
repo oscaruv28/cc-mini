@@ -14,6 +14,8 @@ services:
       - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      # Backup de datos de ejemplo: se restaura al inicializar el volumen por primera vez.
+      - ./db/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       # El backend no arranca hasta que Postgres acepte conexiones.
       test: ["CMD-SHELL", "pg_isready -U cc_mini -d cc_mini"]
@@ -33,9 +35,11 @@ services:
       NODE_ENV: production
       APP_TZ: America/Bogota
       JWT_SECRET: dev-secret-change-me
-      # Al arrancar el contenedor: aplica migraciones y siembra (idempotente).
+      # La BD se inicializa desde el backup (db/init). AUTO_MIGRATE queda como
+      # red de seguridad (no-op si el backup ya cargó el esquema); SEED off
+      # porque los datos vienen del backup. Para poblar sin backup: npm run seed.
       DB_AUTO_MIGRATE: "true"
-      DB_SEED: "true"
+      DB_SEED: "false"
     ports:
       - "3000:3000"
     depends_on:
