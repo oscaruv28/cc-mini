@@ -43,6 +43,11 @@
 - ✅ Manejo de errores (400 agente inválido, 404 no existe, 409 transición inválida).
 - ⏳ **Verificar en runtime** (requiere Postgres) + smoke test de endpoints.
 
+## Auth (extra, a pedido) ✅
+- ✅ Login JWT `POST /auth/login`; guard global (`@Public` en health/login).
+- ✅ `password_hash` en `user` (bcryptjs) + migración + semilla demo (`admin@demo.co`/`admin123`, `agente@demo.co`/`agente123`).
+- ✅ Swagger con botón Authorize (bearer). Verificado en runtime.
+
 ## Etapa 3 — Endpoint de métricas (núcleo) ⏳
 - ⏳ Por agente en un rango: total, resueltas, tasa de resolución, tiempo promedio de resolución.
 - ⏳ Serie de volumen por día en UTC-5.

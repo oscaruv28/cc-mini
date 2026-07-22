@@ -21,6 +21,10 @@ export class User {
   @Enum(() => UserRole)
   role!: UserRole;
 
+  /** Hash bcrypt de la contraseña. `hidden` para que nunca se serialice. */
+  @Property({ hidden: true, nullable: true })
+  passwordHash?: string;
+
   @ManyToOne(() => Customer)
   customer!: Customer;
 

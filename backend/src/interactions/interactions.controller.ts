@@ -8,7 +8,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { InteractionsService } from './interactions.service';
 import { CreateCallDto } from './dto/create-call.dto';
 import { CreateTicketDto } from './dto/create-ticket.dto';
@@ -17,6 +17,7 @@ import { ListInteractionsQueryDto } from './dto/list-interactions-query.dto';
 import { InteractionType } from '../entities/enums';
 
 @ApiTags('interactions')
+@ApiBearerAuth()
 @Controller('interactions')
 export class InteractionsController {
   constructor(private readonly service: InteractionsService) {}

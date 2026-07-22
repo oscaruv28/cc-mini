@@ -30,6 +30,7 @@ async function bootstrap() {
     .setTitle('CC-Mini · Contact Center')
     .setDescription('API de actividad de atención (llamadas y tickets) y métricas operativas.')
     .setVersion('0.1.0')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api/docs', app, document);

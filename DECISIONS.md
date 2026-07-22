@@ -66,7 +66,7 @@ Principio guía: **diseñar pensando en cómo se consultará** (métricas por ag
 - **Vista de solo lectura `v_interaction`** (`UNION ALL` de ambas): las métricas agregan sobre la vista con un solo `GROUP BY`, sin duplicar lógica por tabla. Separa modelo de escritura (2 entidades) del de lectura (1 superficie) — CQRS-lite.
 - **`Customer` se alcanza vía `User`** (el agente pertenece a una empresa), no como FK directa en la interacción. Trade-off: métricas por empresa piden un join extra; no denormalizo porque ninguna métrica requerida lo necesita.
 - **`status` es enum** (3 estados fijos), no tabla. **`timestamptz` en UTC**, conversión a `America/Bogota` en la consulta. **`closed_at` nullable**, solo al resolver. **PK `uuid`** generada por la BD (`gen_random_uuid()`): ids opacos, no enumerables, seguros de exponer.
-- **Sin auth**: `role` solo modela responsabilidades. Sin multi-tenancy real.
+- **Auth**: login JWT simple (`POST /auth/login` → Bearer token; guard global con excepción `@Public`), agregado **a pedido** aunque el enunciado no lo exige. Es autenticación, no autorización por rol. Hash con `bcryptjs` (JS puro, evita compilación nativa en Windows). Trade-off honesto: suma tiempo fuera del núcleo evaluado. Sin multi-tenancy real.
 
 ---
 
