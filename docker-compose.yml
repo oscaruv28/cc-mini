@@ -33,6 +33,9 @@ services:
       NODE_ENV: production
       APP_TZ: America/Bogota
       JWT_SECRET: dev-secret-change-me
+      # Al arrancar el contenedor: aplica migraciones y siembra (idempotente).
+      DB_AUTO_MIGRATE: "true"
+      DB_SEED: "true"
     ports:
       - "3000:3000"
     depends_on:

@@ -105,16 +105,31 @@ Toda la agregación se hace en Postgres sobre la vista `v_interaction` con `coun
 ---
 
 ## 4. Trade-offs
-> _Se irá poblando por etapas._
-- Monorepo vs dos repos → monorepo (ver §1).
-- PostgreSQL vs SQLite → Postgres, priorizando el núcleo de métricas sobre el cero-setup de SQLite; mitigado con docker-compose para no penalizar la DX.
+Decisiones tomadas sabiendo su costo:
 
----
+- **Monorepo vs dos repos** → monorepo: un `clone`, un `docker compose up`. Costo: no aísla ciclos de release (irrelevante a este alcance).
+- **PostgreSQL vs SQLite** → Postgres: `AT TIME ZONE` y agregación indexada para el núcleo. Costo: requiere contenedor (mitigado con compose).
+- **Dos entidades `Call`/`Ticket` + vista `v_interaction` vs tabla única** → dos entidades por realismo de dominio. Costo: hay que mantener la vista sincronizada; se aísla la lectura para no duplicar la agregación.
+- **`Customer` vía `User` (sin FK directa en la interacción)** → simplicidad y fidelidad al dominio. Costo: métricas por empresa piden un join extra (no requerido hoy).
+- **PK `uuid` vs serial** → ids opacos/seguros de exponer. Costo: más tamaño y peor localidad de índice (despreciable a este volumen).
+- **Auth, CRUD de usuarios, simulación, catálogos, disponibilidad** → dan un portal usable y realista, pero **no los exige el enunciado**: superficie extra asumida conscientemente, cuidando no restarle foco al núcleo (métricas). `AgentAvailabilityLog` quedó **modelado pero no construido**.
+- **Front sin React Query/Redux** → contexto de auth + `useAsync` bastan; menos infraestructura. Costo: sin cache/invalidación automática.
 
 ## 5. Uso de IA
-> _Se irá poblando._ Herramienta principal: Antigravity / asistente. Registrar qué entregó incompleto o incorrecto y qué se validó/corrigió a mano.
+Usé un asistente de IA para acelerar scaffolding, boilerplate (DTOs, módulos, componentes), consultas SQL y documentación. El **criterio de arquitectura fue propio** (dos entidades + vista, UUID, alcance disciplinado, cómo resolver la zona horaria); la IA ejecutó, no decidió.
 
----
+**Qué entregó incompleto o incorrecto, y cómo se corrigió/validó:**
+- **Seed de tickets en SQL salió degenerado:** el `random()` dentro de un sub-select se evaluó una sola vez → los 150 tickets cayeron en el mismo agente, estado y fecha. Se **detectó inspeccionando la BD** (no confiando en que "corrió bien") y se reescribió con aleatoriedad por fila.
+- **Aserción de test equivocada:** el test asumía que el login devolvía `200`, pero NestJS responde `201` por defecto en `POST`. Se detectó al correr los e2e y se decidió que `login` devuelva `200` (más semántico) en vez de parchear el test.
+- **Falso amigo "disposición":** en español = disponibilidad; en inglés de CC `disposition` = tipificación. La IA mezclaba ambos. Se alineó con criterio: `Disposition` = tipificación de la interacción, `AgentAvailability` = disponibilidad del agente.
+- **El diagrama `.drawio` se revirtió** al abrirlo en la app; se anotó y no se pisó sin confirmación.
+- **Correctitud de métricas validada a mano:** un script compara la API contra un `SELECT` independiente con ~5k registros, y una prueba de **frontera de medianoche** (llamada de 8pm en Cali) confirma la zona horaria — no se asumió correcto por inspección visual.
 
 ## 6. Qué haría distinto con más tiempo o en producción
-> _Pendiente._
+- **Autorización por rol (RBAC)** real y **refresh tokens**; hoy hay autenticación pero no control de acceso por rol en el backend.
+- **Multi-tenancy real** (scoping por `Customer`) e índices/partición por fecha si el volumen crece a millones.
+- **`AgentAvailabilityLog`** + métricas de ocupación/adherencia por franja (quedó modelado).
+- **DTOs de respuesta / serialización** explícita (no exponer entidades crudas) y **paginación por cursor** para listados grandes.
+- **Tests unitarios** de la máquina de estados y de la agregación (además de los e2e) y **CI**.
+- **Observabilidad** (logs estructurados, métricas de app), **rate limiting**, y **secretos** fuera del `docker-compose` (vault/variables gestionadas).
+- **Frontend:** React Query (cache/invalidación), manejo de expiración de token, y tests de componentes.

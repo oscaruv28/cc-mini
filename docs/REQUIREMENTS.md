@@ -31,23 +31,23 @@ Verificación reproducible del backend: `node scripts/verify.mjs`.
 - [x] Backend en Node; framework/lenguaje/DB/ORM elegidos y **justificados** en DECISIONS
 - [x] Frontend a elección (React + Vite + TS + Tailwind + axios, SPA por módulos)
 - [x] Modelo de datos diseñado pensando en **cómo se consultará**
-- [~] **Script o seed** que cargue datos suficientes (cientos de interacciones, varios agentes, fechas que crucen medianoche) — *hoy se puebla vía `simulate`/SQL; falta el comando único `npm run seed`*
+- [x] **Script o seed** que cargue datos suficientes (cientos de interacciones, varios agentes, fechas que crucen medianoche) — `npm run seed` (`DatabaseSeeder`), y automático en `docker compose up`
 - [x] Maneja **errores y entradas inválidas** de forma explícita (no asume camino feliz)
 
 ---
 
 ## 3. Entregables
-- [~] Repositorio Git con el código, **instrucciones para levantarlo** y el **seed** — *repo ✅; faltan README y seed*
-- [~] **DECISIONS.md** (ver detalle abajo)
-- [ ] **README** — cómo instalar, levantar y probar; endpoints disponibles
+- [x] Repositorio Git con el código, **instrucciones para levantarlo** y el **seed** (`docker compose up` migra+siembra solo)
+- [x] **DECISIONS.md** (ver detalle abajo)
+- [x] **README** — cómo instalar, levantar y probar; endpoints disponibles
 
 ### 3.1 Contenido esperado en DECISIONS.md
 - [x] Arquitectura general (capas, responsabilidades, dónde vive la lógica) — §1
 - [x] Modelo de datos (entidades, relaciones, por qué facilita las métricas) — §2
 - [x] Endpoint de métricas (agregación + zona horaria; alternativas consideradas y descartadas) — §3
-- [~] Trade-offs (decisiones con costos asumidos) — §4 *(hay varios; se puede ampliar)*
-- [ ] Uso de IA (en qué te apoyaste, qué entregó mal/incompleto, qué corregiste/validaste)
-- [ ] Qué harías distinto con más tiempo o en producción
+- [x] Trade-offs (decisiones con costos asumidos) — §4
+- [x] Uso de IA (en qué te apoyaste, qué entregó mal/incompleto, qué corregiste/validaste) — §5
+- [x] Qué harías distinto con más tiempo o en producción — §6
 
 ---
 
@@ -58,11 +58,12 @@ Verificación reproducible del backend: `node scripts/verify.mjs`.
 | Calidad de código (legibilidad, nombres, errores) | 20 | consistente; falta algún test unitario |
 | Núcleo: métricas (agregación, zona horaria, borde) | 20 | ✅ verificado |
 | API y modelo de datos (endpoints, dominio, filtros, paginación) | 15 | ✅ |
-| Documento de decisiones | 15 | 🔄 faltan IA + "qué haría distinto" |
-| Tests y DX (pruebas, README, facilidad de levantar) | 5 | 🔄 e2e (9/9) + aceptación (20/20) ✅; falta README + entrypoint |
+| Documento de decisiones | 15 | ✅ §1–§6 completas (incl. IA y "qué haría distinto") |
+| Tests y DX (pruebas, README, facilidad de levantar) | 5 | ✅ e2e (9/9) + aceptación (20/20) + README + `docker compose up` un comando |
 
 ---
 
 ## Resumen
-- **Núcleo funcional del backend (1.1 + 1.2):** ✅ completo y verificado (20/20).
-- **Pendiente para cerrar la entrega:** interfaz mínima (1.3), seed formal (2), README (3), y completar DECISIONS (IA + qué haría distinto).
+- **Todos los must-have (1.1, 1.2, 1.3) ✅**, pautas técnicas ✅, entregables ✅.
+- Verificación: aceptación por API 20/20 + e2e 9/9. `docker compose up` levanta todo desde cero (migra + siembra).
+- Único ⏳ opcional: `AgentAvailabilityLog` (historial), que nunca fue requerido.
