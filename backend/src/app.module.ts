@@ -9,6 +9,7 @@ import { AppService } from './app.service';
 import { InteractionsModule } from './interactions/interactions.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
       signOptions: { expiresIn: '1d' },
     }),
     AuthModule,
+    UsersModule,
     InteractionsModule,
     // El módulo de métricas se registra en la Etapa 3.
   ],

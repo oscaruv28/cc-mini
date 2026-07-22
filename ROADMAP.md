@@ -47,6 +47,7 @@
 - ✅ Login JWT `POST /auth/login`; guard global (`@Public` en health/login).
 - ✅ `password_hash` en `user` (bcryptjs) + migración + semilla demo (`admin@demo.co`/`admin123`, `agente@demo.co`/`agente123`).
 - ✅ Swagger con botón Authorize (bearer). Verificado en runtime.
+- ✅ CRUD de usuarios (`/users`: crear/listar+filtros/ver/actualizar/eliminar), protegido, sin filtrar `passwordHash`. Verificado en runtime.
 
 ## Etapa 3 — Endpoint de métricas (núcleo) ⏳
 - ⏳ Por agente en un rango: total, resueltas, tasa de resolución, tiempo promedio de resolución.
