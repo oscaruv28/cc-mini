@@ -21,15 +21,15 @@ Verificación reproducible del backend: `node scripts/verify.mjs`.
 - [x] (2) El agrupamiento "por día" respeta la **zona horaria UTC-5** (8 p.m. en Cali cuenta ese día)
 
 ### 1.3 Interfaz mínima
-- [ ] Vista que liste interacciones con sus filtros
-- [ ] Vista de métricas (tabla o gráfico simple)
-- [ ] El frontend consume la API con sensatez y maneja estados de **carga** y **error**
+- [x] Vista que liste interacciones con sus filtros (agente/estado/tipo/rango + paginación)
+- [x] Vista de métricas (tabla por agente + gráfico simple de volumen por día)
+- [x] El frontend consume la API con sensatez y maneja estados de **carga** y **error**
 
 ---
 
 ## 2. Pautas técnicas
 - [x] Backend en Node; framework/lenguaje/DB/ORM elegidos y **justificados** en DECISIONS
-- [ ] Frontend a elección (puede ser sencillo)
+- [x] Frontend a elección (React + Vite + TS + Tailwind + axios, SPA por módulos)
 - [x] Modelo de datos diseñado pensando en **cómo se consultará**
 - [~] **Script o seed** que cargue datos suficientes (cientos de interacciones, varios agentes, fechas que crucen medianoche) — *hoy se puebla vía `simulate`/SQL; falta el comando único `npm run seed`*
 - [x] Maneja **errores y entradas inválidas** de forma explícita (no asume camino feliz)

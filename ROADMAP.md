@@ -53,29 +53,25 @@ El proyecto tiene tres partes: **Backend** (servicio), **Frontend** (cliente) e 
 
 ---
 
-# Parte 2 — Frontend (cliente) ⏳
+# Parte 2 — Frontend (cliente) 🔄
 
-> Decisión pendiente: **stack** (recomendado React + Vite + TypeScript; alternativa Vue).
+Stack: **React + Vite + TypeScript + Tailwind v4 + axios**, SPA, portal por rol.
 
-### 2.0 Setup ⏳
-- Proyecto en `frontend/`, cliente HTTP con base `/api` (var de entorno), router, manejo de token.
+### 2.0 Setup ✅
+- `frontend/` con gateway axios (baseURL por env, Bearer automático, 401 → logout), router, módulos.
 
-### 2.1 Autenticación ⏳
-- Pantalla de login → guarda el JWT → lo adjunta en cada request → rutas protegidas.
+### 2.1 Autenticación ✅
+- Login → guarda JWT + usuario → lo adjunta en cada request → rutas protegidas y **guard por rol**.
 
-### 2.2 Vista de interacciones ⏳
-- Lista con filtros (agente, estado, tipo, rango) + paginación.
-- Estados de **carga** y **error** explícitos (must-have del enunciado).
+### 2.2 Vista de interacciones ✅
+- Lista con filtros (agente, estado, tipo, rango) + paginación, reutilizable (`InteractionsPanel`).
+- Estados de **carga** y **error** explícitos (`useAsync` + `Spinner`/`ErrorState`).
 
-### 2.3 Acciones sobre interacciones ⏳
-- Botón **Simular llamada** (elige agente → `simulate`).
-- Crear llamada/ticket, cambiar estado, tipificar.
-- Cambiar disponibilidad del agente.
+### 2.3 Acciones sobre interacciones ✅
+- Botón **Simular llamada**, cambiar estado, tipificar, cambiar disponibilidad del agente.
 
-### 2.4 Dashboard de métricas ⏳
-- Selector de rango de fechas.
-- Tabla por agente (total, resueltas, tasa, tiempo promedio).
-- Gráfico simple de volumen por día.
+### 2.4 Dashboard de métricas ✅
+- Selector de rango; tabla por agente (total, resueltas, tasa, tiempo promedio); gráfico de volumen por día.
 
 ### 2.5 Pulido + Docker ⏳
 - Servicio `frontend` en `docker-compose` (build estático servido por nginx).
