@@ -59,7 +59,7 @@ Verificación reproducible del backend: `node scripts/verify.mjs`.
 | Núcleo: métricas (agregación, zona horaria, borde) | 20 | ✅ verificado |
 | API y modelo de datos (endpoints, dominio, filtros, paginación) | 15 | ✅ |
 | Documento de decisiones | 15 | 🔄 faltan IA + "qué haría distinto" |
-| Tests y DX (pruebas, README, facilidad de levantar) | 5 | 🔄 falta README + entrypoint |
+| Tests y DX (pruebas, README, facilidad de levantar) | 5 | 🔄 e2e (9/9) + aceptación (20/20) ✅; falta README + entrypoint |
 
 ---
 

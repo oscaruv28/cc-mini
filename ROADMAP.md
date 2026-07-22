@@ -49,7 +49,7 @@ El proyecto tiene tres partes: **Backend** (servicio), **Frontend** (cliente) e 
 - ⏳ **Seed formal** (`npm run seed`): varios agentes + cientos de interacciones (llamadas y tickets) que crucen medianoche. *(Hoy se puebla vía `simulate` / SQL; falta el comando único.)*
 - ⏳ **README** completo (instalar/levantar/probar/endpoints).
 - ⏳ **Entrypoint Docker** para `docker compose up` con migración + seed automáticos.
-- ⏳ Tests unitarios (máquina de estados, agregación de métricas).
+- ✅ Pruebas de integración e2e (`backend/test/app.e2e-spec.ts`, 9/9): auth, ciclo de vida, filtros/paginación, métricas exactas + zona horaria.
 
 ---
 
@@ -80,8 +80,9 @@ Stack: **React + Vite + TypeScript + Tailwind v4 + axios**, SPA, portal por rol.
 ---
 
 # Parte 3 — Integración 🔄
-- ✅ `docker compose up --build` levanta Postgres + backend + frontend (nginx proxy `/api`).
-- ⏳ Entrypoint del backend: `migration:up` + seed automáticos al arrancar (para arranque desde cero sin pasos manuales).
+- ✅ `docker compose up --build` levanta Postgres + backend + frontend (nginx proxy `/api`). Verificado end-to-end.
+- ✅ **Pruebas de integración e2e** (Jest + Supertest) contra BD de test aislada, seed determinista: auth, ciclo de vida, filtros/paginación, y **métricas exactas + frontera de medianoche UTC-5**. 9/9. Reproducible: `bash scripts/test-e2e.sh`.
+- ⏳ Entrypoint del backend: `migration:up` + seed automáticos al arrancar (arranque desde cero sin pasos manuales).
 - ⏳ README raíz con el flujo completo de arranque.
 
 ---
