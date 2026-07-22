@@ -11,6 +11,7 @@ import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { UsersModule } from './users/users.module';
 import { CatalogModule } from './catalog/catalog.module';
+import { MetricsModule } from './metrics/metrics.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { CatalogModule } from './catalog/catalog.module';
     UsersModule,
     CatalogModule,
     InteractionsModule,
+    MetricsModule,
     // El módulo de métricas se registra en la Etapa 3.
   ],
   controllers: [AppController],

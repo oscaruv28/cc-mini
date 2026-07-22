@@ -55,13 +55,13 @@
 - ✅ Swagger con botón Authorize (bearer). Verificado en runtime.
 - ✅ CRUD de usuarios (`/users`: crear/listar+filtros/ver/actualizar/eliminar), protegido, sin filtrar `passwordHash`. Verificado en runtime.
 
-## Etapa 3 — Endpoint de métricas (núcleo) ⏳
-- ⏳ Por agente en un rango: total, resueltas, tasa de resolución, tiempo promedio de resolución.
-- ⏳ Serie de volumen por día en UTC-5.
-- ⏳ Agregación en SQL (sin traer todo a memoria).
-- ⏳ Zona horaria resuelta en el motor.
-- ⏳ Casos borde (rango vacío, sin resueltas, cruces de medianoche).
-- ⏳ Documentar decisión en DECISIONS §3.
+## Etapa 3 — Endpoint de métricas (núcleo) ✅
+- ✅ `GET /metrics?from&to[&agentId]`: por agente (total, resueltas, tasa, tiempo promedio) + serie de volumen por día.
+- ✅ Agregación en SQL sobre `v_interaction` (sin traer a memoria).
+- ✅ Zona horaria UTC-5 resuelta en el motor (`AT TIME ZONE`), con límites de rango que usan el índice de `opened_at`.
+- ✅ Verificado: prueba de frontera de medianoche (8pm Cali cuenta en su día) + contraste vs UTC ingenuo.
+- ✅ DECISIONS §3 documentada.
+- ⏳ Casos borde adicionales (rango vacío/invertido ya cubierto con 400).
 
 ## Etapa 4 — Seed de datos ⏳
 - ⏳ Script/seed: varios agentes, cientos de interacciones, fechas que crucen medianoche UTC-5.

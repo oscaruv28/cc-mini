@@ -71,12 +71,23 @@ Principio guía: **diseñar pensando en cómo se consultará** (métricas por ag
 ---
 
 ## 3. Endpoint de métricas — agregación y zona horaria
-> _Pendiente — núcleo de la prueba._
 
-Puntos que este documento deberá justificar:
-- Cómo se agrega sin traer todo a memoria (agregación en SQL, no en un `for`).
-- Cómo se respeta UTC-5 en el agrupamiento "por día" (una interacción de las 8 p.m. en Cali pertenece a ese día, no al siguiente).
-- Alternativas consideradas y descartadas.
+`GET /api/metrics?from&to[&agentId]` devuelve:
+- **por agente:** total, resueltas, tasa de resolución, tiempo promedio de resolución (segundos).
+- **serie de volumen por día** dentro del rango.
+
+### Agregación en SQL (no en memoria)
+Toda la agregación se hace en Postgres sobre la vista `v_interaction` con `count(*)`, `count(*) filter (where status='RESOLVED')` y `avg(extract(epoch from (closed_at - opened_at))) filter (...)`, agrupando por `agent_id`. Nunca se cargan filas a Node para sumar en un `for`. Escala con índices `(agent_id, opened_at)` y `(opened_at)`.
+
+### Zona horaria (UTC-5) resuelta en el motor
+- **Agrupar por día:** `to_char((opened_at AT TIME ZONE 'America/Bogota')::date, 'YYYY-MM-DD')`. Convierte el instante UTC (`timestamptz`) a la hora local de Colombia antes de truncar por día. Verificado: una llamada de las 20:00 en Cali (01:00Z del día siguiente) cae en **su** día local, no el siguiente.
+- **Límites del rango:** se comparan contra `opened_at` como instantes: `opened_at >= (from::timestamp AT TIME ZONE tz)` y `< ((to+1día)::timestamp AT TIME ZONE tz)`. Así el `WHERE` no aplica funciones sobre la columna → **usa el índice** de `opened_at`, mientras el agrupamiento por día sí convierte la zona en el `SELECT`.
+
+### Alternativas consideradas y descartadas
+- **Agrupar por `opened_at::date` (sin zona):** simple pero **incorrecto** — usa UTC y parte mal la medianoche (la de 8pm caería al día siguiente).
+- **Traer filas y agrupar en JS con `date-fns-tz`:** correcto pero no escala (trae todo a memoria); contradice el criterio del núcleo.
+- **Guardar el día local precalculado en una columna:** rápido de leer pero denormaliza y se rompe si cambia la zona; innecesario con índices.
+- **`SET TIME ZONE` por sesión:** frágil (depende del estado de conexión); mejor explícito en la consulta.
 
 ---
 
