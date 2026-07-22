@@ -17,6 +17,7 @@ import { SetDispositionDto } from './dto/set-disposition.dto';
 import { SimulateCallDto } from './dto/simulate-call.dto';
 import { ListInteractionsQueryDto } from './dto/list-interactions-query.dto';
 import { InteractionType } from '../entities/enums';
+import { CurrentUser, type JwtUser } from '../auth/current-user.decorator';
 
 @ApiTags('interactions')
 @ApiBearerAuth()
@@ -25,55 +26,58 @@ export class InteractionsController {
   constructor(private readonly service: InteractionsService) {}
 
   @Post('calls')
-  createCall(@Body() dto: CreateCallDto) {
-    return this.service.createCall(dto);
+  createCall(@Body() dto: CreateCallDto, @CurrentUser() user: JwtUser) {
+    return this.service.createCall(dto, user.customerId);
   }
 
   @Post('tickets')
-  createTicket(@Body() dto: CreateTicketDto) {
-    return this.service.createTicket(dto);
+  createTicket(@Body() dto: CreateTicketDto, @CurrentUser() user: JwtUser) {
+    return this.service.createTicket(dto, user.customerId);
   }
 
-  /** Genera llamadas aleatorias coherentes para un agente (botón "simular"). */
   @Post('calls/simulate')
-  simulate(@Body() dto: SimulateCallDto) {
-    return this.service.simulateCalls(dto.agentId, dto.count);
+  simulate(@Body() dto: SimulateCallDto, @CurrentUser() user: JwtUser) {
+    return this.service.simulateCalls(dto.agentId, dto.count, user.customerId);
   }
 
   @Patch('calls/:id/status')
   changeCallStatus(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: ChangeStatusDto,
+    @CurrentUser() user: JwtUser,
   ) {
-    return this.service.changeStatus(InteractionType.CALL, id, dto.status);
+    return this.service.changeStatus(InteractionType.CALL, id, dto.status, user.customerId);
   }
 
   @Patch('tickets/:id/status')
   changeTicketStatus(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: ChangeStatusDto,
+    @CurrentUser() user: JwtUser,
   ) {
-    return this.service.changeStatus(InteractionType.TICKET, id, dto.status);
+    return this.service.changeStatus(InteractionType.TICKET, id, dto.status, user.customerId);
   }
 
   @Patch('calls/:id/disposition')
   tipifyCall(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: SetDispositionDto,
+    @CurrentUser() user: JwtUser,
   ) {
-    return this.service.setDisposition(InteractionType.CALL, id, dto.dispositionId);
+    return this.service.setDisposition(InteractionType.CALL, id, dto.dispositionId, user.customerId);
   }
 
   @Patch('tickets/:id/disposition')
   tipifyTicket(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: SetDispositionDto,
+    @CurrentUser() user: JwtUser,
   ) {
-    return this.service.setDisposition(InteractionType.TICKET, id, dto.dispositionId);
+    return this.service.setDisposition(InteractionType.TICKET, id, dto.dispositionId, user.customerId);
   }
 
   @Get()
-  list(@Query() query: ListInteractionsQueryDto) {
-    return this.service.list(query);
+  list(@Query() query: ListInteractionsQueryDto, @CurrentUser() user: JwtUser) {
+    return this.service.list(query, user.customerId);
   }
 }

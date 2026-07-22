@@ -20,6 +20,9 @@ export class InteractionView {
   @Property({ type: 'uuid' })
   agentId!: string;
 
+  @Property({ type: 'uuid' })
+  customerId!: string;
+
   @Property({ type: 'uuid', nullable: true })
   dispositionId?: string;
 

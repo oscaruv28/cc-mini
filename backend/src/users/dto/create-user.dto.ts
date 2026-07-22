@@ -1,14 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsEmail,
-  IsEnum,
-  IsNotEmpty,
-  IsString,
-  IsUUID,
-  MinLength,
-} from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsString, MinLength } from 'class-validator';
 import { UserRole } from '../../entities/enums';
 
+// La empresa (customerId) se toma del token, no del body: un admin solo crea
+// usuarios dentro de su propia organización.
 export class CreateUserDto {
   @ApiProperty()
   @IsString()
@@ -22,10 +17,6 @@ export class CreateUserDto {
   @ApiProperty({ enum: UserRole })
   @IsEnum(UserRole)
   role!: UserRole;
-
-  @ApiProperty({ format: 'uuid', description: 'Empresa a la que pertenece' })
-  @IsUUID()
-  customerId!: string;
 
   @ApiProperty({ minLength: 6 })
   @IsString()

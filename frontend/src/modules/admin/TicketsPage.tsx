@@ -73,7 +73,7 @@ export default function TicketsPage() {
       </Card>
 
       <Card title="Tickets">
-        <InteractionsPanel agents={agents} dispositions={dispositions} lockedType="TICKET" reloadKey={reloadKey} />
+        <InteractionsPanel agents={agents} dispositions={dispositions} lockedType="TICKET" reloadKey={reloadKey} allowStatusChange />
       </Card>
     </div>
   );

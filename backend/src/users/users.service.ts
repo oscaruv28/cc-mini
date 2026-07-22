@@ -15,24 +15,20 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ListUsersQueryDto } from './dto/list-users-query.dto';
 
+/** Todas las operaciones están aisladas a la empresa (`customerId`) del token. */
 @Injectable()
 export class UsersService {
   constructor(private readonly em: EntityManager) {}
 
-  async create(dto: CreateUserDto): Promise<User> {
-    const customer = await this.em.findOne(Customer, { id: dto.customerId });
-    if (!customer) {
-      throw new BadRequestException(`El cliente ${dto.customerId} no existe`);
-    }
+  async create(dto: CreateUserDto, customerId: string): Promise<User> {
     if (await this.em.findOne(User, { email: dto.email })) {
       throw new ConflictException('Ya existe un usuario con ese email');
     }
-
     const user = this.em.create(User, {
       name: dto.name,
       email: dto.email,
       role: dto.role,
-      customer,
+      customer: this.em.getReference(Customer, customerId),
       passwordHash: await bcrypt.hash(dto.password, 10),
       createdAt: new Date(),
     });
@@ -40,10 +36,9 @@ export class UsersService {
     return user;
   }
 
-  async findAll(query: ListUsersQueryDto) {
-    const where: Record<string, unknown> = {};
+  async findAll(query: ListUsersQueryDto, customerId: string) {
+    const where: Record<string, unknown> = { customer: customerId };
     if (query.role) where.role = query.role;
-    if (query.customerId) where.customer = query.customerId;
 
     const { page, limit } = query;
     const [items, total] = await this.em.findAndCount(
@@ -53,24 +48,24 @@ export class UsersService {
         limit,
         offset: (page - 1) * limit,
         orderBy: { createdAt: 'DESC' },
-        populate: ['customer'],
+        populate: ['customer', 'availability'],
       },
     );
     return { items, total, page, limit, pages: Math.ceil(total / limit) };
   }
 
-  async findOne(id: string): Promise<User> {
+  async findOne(id: string, customerId: string): Promise<User> {
     const user = await this.em.findOne(
       User,
-      { id },
+      { id, customer: customerId },
       { populate: ['customer', 'availability'] },
     );
     if (!user) throw new NotFoundException(`No existe el usuario ${id}`);
     return user;
   }
 
-  async update(id: string, dto: UpdateUserDto): Promise<User> {
-    const user = await this.findOne(id);
+  async update(id: string, dto: UpdateUserDto, customerId: string): Promise<User> {
+    const user = await this.findOne(id, customerId);
     if (dto.name !== undefined) user.name = dto.name;
     if (dto.role !== undefined) user.role = dto.role;
     if (dto.password !== undefined) {
@@ -80,9 +75,8 @@ export class UsersService {
     return user;
   }
 
-  /** Cambia la disponibilidad de un agente (DISPONIBLE, EN_PAUSA...). */
-  async setAvailability(id: string, availabilityId: string): Promise<User> {
-    const user = await this.findOne(id);
+  async setAvailability(id: string, availabilityId: string, customerId: string): Promise<User> {
+    const user = await this.findOne(id, customerId);
     if (user.role !== UserRole.AGENT) {
       throw new BadRequestException('Solo los agentes tienen disponibilidad');
     }
@@ -95,12 +89,11 @@ export class UsersService {
     return user;
   }
 
-  async remove(id: string): Promise<void> {
-    const user = await this.findOne(id);
+  async remove(id: string, customerId: string): Promise<void> {
+    const user = await this.findOne(id, customerId);
     try {
       await this.em.removeAndFlush(user);
     } catch {
-      // FK: el usuario es agente de llamadas/tickets existentes.
       throw new ConflictException(
         'No se puede eliminar: el usuario tiene interacciones asociadas',
       );

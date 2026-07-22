@@ -27,7 +27,7 @@ export class MetricsService {
 
   constructor(private readonly em: EntityManager) {}
 
-  async getMetrics(q: MetricsQueryDto) {
+  async getMetrics(q: MetricsQueryDto, customerId: string) {
     if (new Date(q.from) > new Date(q.to)) {
       throw new BadRequestException('`from` no puede ser posterior a `to`');
     }
@@ -45,7 +45,8 @@ export class MetricsService {
                filter (where v.status = 'RESOLVED' and v.closed_at is not null) as "avgResolutionSeconds"
       from v_interaction v
       join "user" u on u.id = v.agent_id
-      where v.opened_at >= ((?::timestamp) at time zone ?)
+      where v.customer_id = ?
+        and v.opened_at >= ((?::timestamp) at time zone ?)
         and v.opened_at <  (((?::timestamp) + interval '1 day') at time zone ?)
         ${agentFilter}
       group by v.agent_id, u.name
@@ -55,16 +56,17 @@ export class MetricsService {
       select to_char((v.opened_at at time zone ?)::date, 'YYYY-MM-DD') as day,
              count(*)::int as total
       from v_interaction v
-      where v.opened_at >= ((?::timestamp) at time zone ?)
+      where v.customer_id = ?
+        and v.opened_at >= ((?::timestamp) at time zone ?)
         and v.opened_at <  (((?::timestamp) + interval '1 day') at time zone ?)
         ${agentFilter}
       group by day
       order by day`;
 
-    const perAgentParams: unknown[] = [q.from, this.tz, q.to, this.tz];
+    const perAgentParams: unknown[] = [customerId, q.from, this.tz, q.to, this.tz];
     if (q.agentId) perAgentParams.push(q.agentId);
 
-    const dailyParams: unknown[] = [this.tz, q.from, this.tz, q.to, this.tz];
+    const dailyParams: unknown[] = [this.tz, customerId, q.from, this.tz, q.to, this.tz];
     if (q.agentId) dailyParams.push(q.agentId);
 
     const [perAgentRows, dailyRows] = await Promise.all([

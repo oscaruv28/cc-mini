@@ -31,12 +31,16 @@ const pick = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 const randInt = (min: number, max: number): number =>
   min + Math.floor(Math.random() * (max - min + 1));
 
+/**
+ * Todas las operaciones están aisladas por `customerId` (empresa del usuario
+ * autenticado): un usuario solo ve/afecta interacciones de agentes de su empresa.
+ */
 @Injectable()
 export class InteractionsService {
   constructor(private readonly em: EntityManager) {}
 
-  async createCall(dto: CreateCallDto): Promise<Call> {
-    const agent = await this.getAgent(dto.agentId);
+  async createCall(dto: CreateCallDto, customerId: string): Promise<Call> {
+    const agent = await this.getAgent(dto.agentId, customerId);
     const call = new Call();
     call.agent = agent;
     call.direction = dto.direction;
@@ -47,8 +51,8 @@ export class InteractionsService {
     return call;
   }
 
-  async createTicket(dto: CreateTicketDto): Promise<Ticket> {
-    const agent = await this.getAgent(dto.agentId);
+  async createTicket(dto: CreateTicketDto, customerId: string): Promise<Ticket> {
+    const agent = await this.getAgent(dto.agentId, customerId);
     const ticket = new Ticket();
     ticket.agent = agent;
     ticket.subject = dto.subject;
@@ -60,14 +64,8 @@ export class InteractionsService {
     return ticket;
   }
 
-  /**
-   * Genera `count` llamadas aleatorias pero coherentes para un agente:
-   * dirección, teléfono y duración al azar; apertura en los últimos 14 días
-   * (a cualquier hora, para cruzar medianoche); estado ponderado; y si queda
-   * resuelta, cierre = apertura + duración y una tipificación al azar.
-   */
-  async simulateCalls(agentId: string, count: number) {
-    const agent = await this.getAgent(agentId);
+  async simulateCalls(agentId: string, count: number, customerId: string) {
+    const agent = await this.getAgent(agentId, customerId);
     const dispositions = await this.em.find(Disposition, { active: true });
 
     const created: Call[] = [];
@@ -104,8 +102,9 @@ export class InteractionsService {
     type: InteractionType,
     id: string,
     next: InteractionStatus,
+    customerId: string,
   ): Promise<Call | Ticket> {
-    const entity = await this.findByType(type, id);
+    const entity = await this.findByType(type, id, customerId);
     if (!ALLOWED_TRANSITIONS[entity.status].includes(next)) {
       throw new ConflictException(
         `Transición inválida: ${entity.status} → ${next}. ` +
@@ -118,13 +117,13 @@ export class InteractionsService {
     return entity;
   }
 
-  /** Tipifica: asigna una Disposition (cómo concluyó) a la interacción. */
   async setDisposition(
     type: InteractionType,
     id: string,
     dispositionId: string,
+    customerId: string,
   ): Promise<Call | Ticket> {
-    const entity = await this.findByType(type, id);
+    const entity = await this.findByType(type, id, customerId);
     const disposition = await this.em.findOne(Disposition, { id: dispositionId });
     if (!disposition) {
       throw new BadRequestException(`La tipificación ${dispositionId} no existe`);
@@ -134,8 +133,8 @@ export class InteractionsService {
     return entity;
   }
 
-  async list(query: ListInteractionsQueryDto) {
-    const where: Record<string, unknown> = {};
+  async list(query: ListInteractionsQueryDto, customerId: string) {
+    const where: Record<string, unknown> = { customerId };
     if (query.agentId) where.agentId = query.agentId;
     if (query.status) where.status = query.status;
     if (query.type) where.type = query.type;
@@ -157,21 +156,29 @@ export class InteractionsService {
     return { items, total, page, limit, pages: Math.ceil(total / limit) };
   }
 
-  private async findByType(type: InteractionType, id: string): Promise<Call | Ticket> {
+  /** Busca la interacción por id y tipo, restringida a la empresa. */
+  private async findByType(
+    type: InteractionType,
+    id: string,
+    customerId: string,
+  ): Promise<Call | Ticket> {
+    const where = { id, agent: { customer: customerId } } as FilterQuery<Call & Ticket>;
     const entity =
       type === InteractionType.CALL
-        ? await this.em.findOne(Call, { id })
-        : await this.em.findOne(Ticket, { id });
+        ? await this.em.findOne(Call, where)
+        : await this.em.findOne(Ticket, where);
     if (!entity) {
       throw new NotFoundException(`No existe ${type.toLowerCase()} con id ${id}`);
     }
     return entity;
   }
 
-  /** Valida que el destinatario exista y sea un agente. */
-  private async getAgent(agentId: string): Promise<User> {
-    const agent = await this.em.findOne(User, { id: agentId });
-    if (!agent) throw new BadRequestException(`El agente ${agentId} no existe`);
+  /** Valida que el agente exista, sea AGENT y pertenezca a la empresa. */
+  private async getAgent(agentId: string, customerId: string): Promise<User> {
+    const agent = await this.em.findOne(User, { id: agentId, customer: customerId });
+    if (!agent) {
+      throw new BadRequestException(`El agente ${agentId} no existe en tu empresa`);
+    }
     if (agent.role !== UserRole.AGENT) {
       throw new BadRequestException('El usuario asignado no tiene rol AGENT');
     }

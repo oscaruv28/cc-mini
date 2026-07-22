@@ -2,6 +2,7 @@ import { Controller, Get, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { MetricsService } from './metrics.service';
 import { MetricsQueryDto } from './dto/metrics-query.dto';
+import { CurrentUser, type JwtUser } from '../auth/current-user.decorator';
 
 @ApiTags('metrics')
 @ApiBearerAuth()
@@ -10,7 +11,7 @@ export class MetricsController {
   constructor(private readonly service: MetricsService) {}
 
   @Get()
-  get(@Query() query: MetricsQueryDto) {
-    return this.service.getMetrics(query);
+  get(@Query() query: MetricsQueryDto, @CurrentUser() user: JwtUser) {
+    return this.service.getMetrics(query, user.customerId);
   }
 }

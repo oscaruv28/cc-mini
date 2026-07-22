@@ -13,7 +13,11 @@ export class AuthService {
   ) {}
 
   async login(dto: LoginDto) {
-    const user = await this.em.findOne(User, { email: dto.email });
+    const user = await this.em.findOne(
+      User,
+      { email: dto.email },
+      { populate: ['customer'] },
+    );
     // Mismo mensaje para usuario inexistente o contraseña mala (no filtrar cuál falló).
     if (
       !user ||
@@ -23,7 +27,13 @@ export class AuthService {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    const payload = { sub: user.id, email: user.email, role: user.role };
+    // customerId viaja en el token para aislar los datos por empresa.
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      customerId: user.customer.id,
+    };
     return {
       access_token: await this.jwt.signAsync(payload),
       user: {

@@ -22,15 +22,13 @@ export default function AgentsAdminPage() {
 
   if (loading) return <Spinner />;
   if (error || !data) return <ErrorState message={error ?? 'Error'} />;
-  const customerId = data.me.customer?.id;
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!customerId) return;
     setBusy(true);
     setFormError(null);
     try {
-      await usersApi.create({ ...form, customerId });
+      await usersApi.create(form);
       setForm({ name: '', email: '', role: 'AGENT', password: '' });
       setReloadKey((k) => k + 1);
     } catch (err) {

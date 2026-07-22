@@ -16,6 +16,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ListUsersQueryDto } from './dto/list-users-query.dto';
 import { SetAvailabilityDto } from './dto/set-availability.dto';
+import { CurrentUser, type JwtUser } from '../auth/current-user.decorator';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -24,37 +25,41 @@ export class UsersController {
   constructor(private readonly service: UsersService) {}
 
   @Post()
-  create(@Body() dto: CreateUserDto) {
-    return this.service.create(dto);
+  create(@Body() dto: CreateUserDto, @CurrentUser() user: JwtUser) {
+    return this.service.create(dto, user.customerId);
   }
 
   @Get()
-  findAll(@Query() query: ListUsersQueryDto) {
-    return this.service.findAll(query);
+  findAll(@Query() query: ListUsersQueryDto, @CurrentUser() user: JwtUser) {
+    return this.service.findAll(query, user.customerId);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.service.findOne(id);
+  findOne(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: JwtUser) {
+    return this.service.findOne(id, user.customerId);
   }
 
   @Patch(':id')
-  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateUserDto) {
-    return this.service.update(id, dto);
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateUserDto,
+    @CurrentUser() user: JwtUser,
+  ) {
+    return this.service.update(id, dto, user.customerId);
   }
 
-  /** Cambia la disponibilidad del agente (sin sesión: se pasa el id). */
   @Patch(':id/availability')
   setAvailability(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: SetAvailabilityDto,
+    @CurrentUser() user: JwtUser,
   ) {
-    return this.service.setAvailability(id, dto.availabilityId);
+    return this.service.setAvailability(id, dto.availabilityId, user.customerId);
   }
 
   @Delete(':id')
   @HttpCode(204)
-  remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.service.remove(id);
+  remove(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: JwtUser) {
+    return this.service.remove(id, user.customerId);
   }
 }

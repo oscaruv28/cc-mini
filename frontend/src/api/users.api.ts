@@ -5,7 +5,6 @@ export interface CreateUserBody {
   name: string;
   email: string;
   role: Role;
-  customerId: string;
   password: string;
 }
 

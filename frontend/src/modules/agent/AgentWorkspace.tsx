@@ -83,6 +83,7 @@ export default function AgentWorkspace() {
           dispositions={dispositions}
           reloadKey={reloadKey}
           allowStatusChange
+          lockedType="CALL"
         />
       </Card>
     </div>
