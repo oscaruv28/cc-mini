@@ -1,5 +1,6 @@
 # Orquesta el sistema completo. Con Docker Desktop:  docker compose up --build
-# Levanta PostgreSQL + backend. El servicio de frontend se agrega en su etapa.
+# Levanta PostgreSQL + backend (API) + frontend (SPA servida por nginx).
+# Accesos:  frontend http://localhost:8080  ·  API http://localhost:3000/api
 
 services:
   db:
@@ -31,16 +32,23 @@ services:
       PORT: 3000
       NODE_ENV: production
       APP_TZ: America/Bogota
+      JWT_SECRET: dev-secret-change-me
     ports:
       - "3000:3000"
     depends_on:
       db:
         condition: service_healthy
 
-  # frontend:
-  #   build: ./frontend
-  #   ports: ["8080:80"]
-  #   depends_on: [backend]
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Mismo origen: la SPA llama a /api y nginx hace proxy al backend.
+        VITE_API_URL: /api
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
 
 volumes:
   pgdata:

@@ -56,6 +56,8 @@ SPA en **React + Vite + TypeScript + Tailwind v4 + axios**, organizada por módu
 - **Hooks (`src/hooks/`):** `useAuth` (contexto de sesión: login/logout, token+usuario en `localStorage`) y `useAsync` (envuelve cada consumo con estados de **carga** y **error** explícitos, exigidos por el enunciado).
 - **Componentes (`src/components/`) y utils (`src/utils/`):** UI reutilizable (`Button`, `Input`, `Card`, `Spinner`, `ErrorState`, `Badge`, `InteractionsPanel`) y formateadores (fechas en UTC-5, duración, porcentaje). El gráfico de volumen por día es un **bar chart en CSS puro** (sin dependencia extra) — "gráfico simple" como pide el enunciado.
 
+- **Configuración dev/prod (raíz de la API):** `VITE_API_URL` (inyectada por Vite en build). En **dev** = `http://localhost:3000/api` (la SPA en `:5173` llama directo al backend, CORS abierto). En **prod** (Docker) = `/api` (mismo origen): nginx sirve el build estático y hace **proxy** de `/api` al contenedor `backend` — sin CORS ni host quemado. Un `Dockerfile` por componente (front = build Vite → nginx) y un solo `docker-compose` que orquesta todo.
+
 **Trade-off:** no metí librería de estado global (Redux/Zustand) ni de data-fetching (React Query); para este alcance, contexto de auth + `useAsync` bastan y evitan sobre-ingeniería. Con más tráfico/páginas, React Query aportaría cache e invalidación.
 
 ---

@@ -73,14 +73,16 @@ Stack: **React + Vite + TypeScript + Tailwind v4 + axios**, SPA, portal por rol.
 ### 2.4 Dashboard de métricas ✅
 - Selector de rango; tabla por agente (total, resueltas, tasa, tiempo promedio); gráfico de volumen por día.
 
-### 2.5 Pulido + Docker ⏳
-- Servicio `frontend` en `docker-compose` (build estático servido por nginx).
+### 2.5 Pulido + Docker ✅
+- Servicio `frontend` en `docker-compose` (build Vite → nginx), con proxy `/api` → backend.
+- `VITE_API_URL` configurable dev (`localhost:3000/api`) / prod (`/api` mismo origen).
 
 ---
 
-# Parte 3 — Integración ⏳
-- `docker compose up` levanta Postgres + backend (migración + seed) + frontend, todo conectado.
-- README raíz con el flujo completo de arranque.
+# Parte 3 — Integración 🔄
+- ✅ `docker compose up --build` levanta Postgres + backend + frontend (nginx proxy `/api`).
+- ⏳ Entrypoint del backend: `migration:up` + seed automáticos al arrancar (para arranque desde cero sin pasos manuales).
+- ⏳ README raíz con el flujo completo de arranque.
 
 ---
 
