@@ -41,11 +41,22 @@ cc-mini/
 | ORM | **MikroORM** | Unit of Work + Identity Map, entidades TS limpias, y `QueryBuilder` para las agregaciones de métricas sin caer en traer todo a memoria. |
 | Base de datos | **PostgreSQL** | Núcleo de la prueba. `date_trunc('day', opened_at AT TIME ZONE 'America/Bogota')` resuelve la zona horaria (UTC-5) **en el motor**, y `GROUP BY` indexado agrega eficiente cuando los datos crecen. |
 
-### Organización de capas (backend) — _a detallar en etapa de modelo_
+### Organización de capas (backend)
 - **api** (controllers): entrada/salida HTTP, validación de DTOs, paginación. Sin lógica de negocio.
 - **application** (services/casos de uso): orquesta la lógica; transiciones de estado, cálculo de métricas.
 - **domain** (entities + reglas): entidades MikroORM y reglas invariantes (p. ej. una interacción resuelta debe tener `closedAt`).
 - **infrastructure** (repositorios/config ORM): acceso a datos, migraciones, seed.
+
+### Arquitectura del frontend
+SPA en **React + Vite + TypeScript + Tailwind v4 + axios**, organizada por módulos y con separación clara de responsabilidades. Detalle en [docs/FRONTEND.md](./docs/FRONTEND.md).
+
+- **Capa de servicios / gateway (`src/api/`):** un **único cliente axios** (`client.ts`) con `baseURL` por variable de entorno, inyección automática del **Bearer** y manejo central de **401 → logout**. Encima, un **servicio por dominio** (`auth`, `interactions`, `users`, `metrics`, `catalog`). Los componentes **no llaman axios directo** — siempre pasan por estos servicios. Beneficio: un solo lugar para auth, errores y base URL; fácil de testear y de cambiar.
+- **Ruteo (`react-router-dom`) con rutas anidadas y `Outlet`:** una *layout route* (`Protected`) valida la sesión y renderiza `AppLayout`, que contiene el `<Outlet/>` donde se pintan las páginas hijas (comparten header/nav sin repetirlo). Redirecciones con `Navigate`, navegación con `NavLink`.
+- **Guards por rol:** `Protected` (exige sesión) y `RequireRole` (exige `ADMIN`) protegen las rutas; `HomeRedirect` enruta a `/dashboard` (admin) o `/agent` (agente) según el rol. Es un **portal por rol**.
+- **Hooks (`src/hooks/`):** `useAuth` (contexto de sesión: login/logout, token+usuario en `localStorage`) y `useAsync` (envuelve cada consumo con estados de **carga** y **error** explícitos, exigidos por el enunciado).
+- **Componentes (`src/components/`) y utils (`src/utils/`):** UI reutilizable (`Button`, `Input`, `Card`, `Spinner`, `ErrorState`, `Badge`, `InteractionsPanel`) y formateadores (fechas en UTC-5, duración, porcentaje). El gráfico de volumen por día es un **bar chart en CSS puro** (sin dependencia extra) — "gráfico simple" como pide el enunciado.
+
+**Trade-off:** no metí librería de estado global (Redux/Zustand) ni de data-fetching (React Query); para este alcance, contexto de auth + `useAsync` bastan y evitan sobre-ingeniería. Con más tráfico/páginas, React Query aportaría cache e invalidación.
 
 ---
 
