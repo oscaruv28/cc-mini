@@ -1,0 +1,45 @@
+# Orquesta el sistema completo. Con Docker Desktop:  docker compose up --build
+# Levanta PostgreSQL + backend. El servicio de frontend se agrega en su etapa.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: cc_mini
+      POSTGRES_USER: cc_mini
+      POSTGRES_PASSWORD: cc_mini
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # El backend no arranca hasta que Postgres acepte conexiones.
+      test: ["CMD-SHELL", "pg_isready -U cc_mini -d cc_mini"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: cc_mini
+      DB_USER: cc_mini
+      DB_PASSWORD: cc_mini
+      PORT: 3000
+      NODE_ENV: production
+      APP_TZ: America/Bogota
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # frontend:
+  #   build: ./frontend
+  #   ports: ["8080:80"]
+  #   depends_on: [backend]
+
+volumes:
+  pgdata:
