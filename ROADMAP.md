@@ -71,8 +71,9 @@
 - ⏳ Vista de métricas (tabla o gráfico simple).
 - ⏳ Manejo de estados de carga y error.
 
-## Etapa 6 — Cierre: DX, tests y docs ⏳
-- ⏳ Tests donde aporten (transiciones de estado, agregación, zona horaria).
+## Etapa 6 — Cierre: DX, tests y docs 🔄
+- ✅ Script de aceptación `scripts/verify.mjs`: mapea cada requisito a una prueba de API + masivo + correctitud API vs BD (20/20 con ~5k interacciones).
+- ⏳ Tests unitarios donde aporten (máquina de estados, agregación, zona horaria).
 - ⏳ README: instalar, levantar, probar, endpoints.
-- ⏳ DECISIONS.md completo (trade-offs, uso de IA, qué haría distinto).
-- ⏳ Verificar arranque limpio desde cero.
+- ⏳ DECISIONS.md completo (uso de IA, qué haría distinto).
+- ⏳ Verificar arranque limpio desde cero (docker compose up con entrypoint de migración+seed).
