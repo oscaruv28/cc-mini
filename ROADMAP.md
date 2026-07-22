@@ -20,15 +20,15 @@
 - ⏳ Entrypoint que ejecute `migration:up` + `seed` al arrancar el contenedor (se cablea cuando existan migraciones/seed).
 - ⏳ Servicio `frontend` en docker-compose (etapa de frontend).
 
-## Etapa 1 — Modelo de datos 🔄
+## Etapa 1 — Modelo de datos ✅
 - ✅ Esquema documentado ([docs/DATA-MODEL.md](./docs/DATA-MODEL.md)) + diagrama ([docs/data-model.drawio](./docs/data-model.drawio)).
 - ✅ Decisiones de modelo en DECISIONS §2.
-- ✅ Entidades MikroORM núcleo: `Customer`, `User`, `BaseInteraction` (abstracta), `Call`, `Ticket`, `Disposition` — DDL validado con `schema:create --dump`.
+- ✅ Entidades MikroORM núcleo: `Customer`, `User`, `BaseInteraction` (abstracta), `Call`, `Ticket`, `Disposition` — DDL validado.
 - ✅ Enums (`InteractionStatus`, `InteractionType`, `CallDirection`, `TicketPriority`, `UserRole`).
 - ✅ Índices `(agent_id, opened_at)`, `(opened_at)`, `(status)` en `call` y `ticket`.
 - ✅ PK `uuid` (`gen_random_uuid()`).
-- ⏳ Migración inicial (+ vista `v_interaction` con `UNION ALL`) — requiere BD arriba o migración a mano.
-- ⏳ DTOs de entrada/salida con validación.
+- ✅ Migración inicial (+ vista `v_interaction` con `UNION ALL`) — aplicada en runtime.
+- ✅ DTOs de entrada/salida con validación.
 
 ## Simulación, tipificación y catálogos (a pedido) ✅
 - ✅ `POST /interactions/calls/simulate` — genera N llamadas aleatorias coherentes por agente (dirección, duración, teléfono, apertura en 14 días que cruza medianoche, estado ponderado, tipificación si resuelta).
@@ -42,12 +42,12 @@
 - ✅ Endpoint para cambiar la disponibilidad (con validación).
 - ⏳ `AgentAvailabilityLog` (historial) + métricas por franja (ocupación/adherencia) — sigue como opcional.
 
-## Etapa 2 — Gestión de interacciones (API) 🔄 (código listo, falta probar en runtime)
+## Etapa 2 — Gestión de interacciones (API) ✅
 - ✅ Crear: `POST /interactions/calls` y `/tickets` (DTOs con validación).
 - ✅ Cambiar estado con validación de transiciones (`OPEN→IN_PROGRESS→RESOLVED`, `closed_at` al resolver).
 - ✅ Listar `GET /interactions` sobre la vista, con filtros (agente/estado/tipo/rango) + paginación.
 - ✅ Manejo de errores (400 agente inválido, 404 no existe, 409 transición inválida).
-- ⏳ **Verificar en runtime** (requiere Postgres) + smoke test de endpoints.
+- ✅ Verificado en runtime + smoke test (ver `scripts/verify.mjs`).
 
 ## Auth (extra, a pedido) ✅
 - ✅ Login JWT `POST /auth/login`; guard global (`@Public` en health/login).
