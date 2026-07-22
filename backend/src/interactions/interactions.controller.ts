@@ -13,6 +13,8 @@ import { InteractionsService } from './interactions.service';
 import { CreateCallDto } from './dto/create-call.dto';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { ChangeStatusDto } from './dto/change-status.dto';
+import { SetDispositionDto } from './dto/set-disposition.dto';
+import { SimulateCallDto } from './dto/simulate-call.dto';
 import { ListInteractionsQueryDto } from './dto/list-interactions-query.dto';
 import { InteractionType } from '../entities/enums';
 
@@ -32,6 +34,12 @@ export class InteractionsController {
     return this.service.createTicket(dto);
   }
 
+  /** Genera llamadas aleatorias coherentes para un agente (botón "simular"). */
+  @Post('calls/simulate')
+  simulate(@Body() dto: SimulateCallDto) {
+    return this.service.simulateCalls(dto.agentId, dto.count);
+  }
+
   @Patch('calls/:id/status')
   changeCallStatus(
     @Param('id', ParseUUIDPipe) id: string,
@@ -46,6 +54,22 @@ export class InteractionsController {
     @Body() dto: ChangeStatusDto,
   ) {
     return this.service.changeStatus(InteractionType.TICKET, id, dto.status);
+  }
+
+  @Patch('calls/:id/disposition')
+  tipifyCall(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: SetDispositionDto,
+  ) {
+    return this.service.setDisposition(InteractionType.CALL, id, dto.dispositionId);
+  }
+
+  @Patch('tickets/:id/disposition')
+  tipifyTicket(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: SetDispositionDto,
+  ) {
+    return this.service.setDisposition(InteractionType.TICKET, id, dto.dispositionId);
   }
 
   @Get()

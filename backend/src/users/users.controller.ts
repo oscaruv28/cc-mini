@@ -15,6 +15,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ListUsersQueryDto } from './dto/list-users-query.dto';
+import { SetAvailabilityDto } from './dto/set-availability.dto';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -40,6 +41,15 @@ export class UsersController {
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateUserDto) {
     return this.service.update(id, dto);
+  }
+
+  /** Cambia la disponibilidad del agente (sin sesión: se pasa el id). */
+  @Patch(':id/availability')
+  setAvailability(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: SetAvailabilityDto,
+  ) {
+    return this.service.setAvailability(id, dto.availabilityId);
   }
 
   @Delete(':id')

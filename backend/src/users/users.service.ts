@@ -9,6 +9,8 @@ import type { FilterQuery } from '@mikro-orm/core';
 import * as bcrypt from 'bcryptjs';
 import { User } from '../entities/user.entity';
 import { Customer } from '../entities/customer.entity';
+import { AgentAvailability } from '../entities/agent-availability.entity';
+import { UserRole } from '../entities/enums';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ListUsersQueryDto } from './dto/list-users-query.dto';
@@ -58,7 +60,11 @@ export class UsersService {
   }
 
   async findOne(id: string): Promise<User> {
-    const user = await this.em.findOne(User, { id }, { populate: ['customer'] });
+    const user = await this.em.findOne(
+      User,
+      { id },
+      { populate: ['customer', 'availability'] },
+    );
     if (!user) throw new NotFoundException(`No existe el usuario ${id}`);
     return user;
   }
@@ -70,6 +76,21 @@ export class UsersService {
     if (dto.password !== undefined) {
       user.passwordHash = await bcrypt.hash(dto.password, 10);
     }
+    await this.em.flush();
+    return user;
+  }
+
+  /** Cambia la disponibilidad de un agente (DISPONIBLE, EN_PAUSA...). */
+  async setAvailability(id: string, availabilityId: string): Promise<User> {
+    const user = await this.findOne(id);
+    if (user.role !== UserRole.AGENT) {
+      throw new BadRequestException('Solo los agentes tienen disponibilidad');
+    }
+    const availability = await this.em.findOne(AgentAvailability, { id: availabilityId });
+    if (!availability) {
+      throw new BadRequestException(`La disponibilidad ${availabilityId} no existe`);
+    }
+    user.availability = availability;
     await this.em.flush();
     return user;
   }

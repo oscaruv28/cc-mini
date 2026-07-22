@@ -30,11 +30,17 @@
 - ⏳ Migración inicial (+ vista `v_interaction` con `UNION ALL`) — requiere BD arriba o migración a mano.
 - ⏳ DTOs de entrada/salida con validación.
 
-## Etapa 7 — Disponibilidad del agente (solo si sobra tiempo) ⏳
-- ⏳ Entidades `AgentAvailability` (catálogo, `can_take_calls`) + `AgentAvailabilityLog` (historial).
-- ⏳ Seed ligero de estados.
-- ⏳ Endpoint/UI de disponibilidad y métricas por franja (ocupación/adherencia).
-- Nota: ninguna métrica requerida depende de esto; se cablea al final.
+## Simulación, tipificación y catálogos (a pedido) ✅
+- ✅ `POST /interactions/calls/simulate` — genera N llamadas aleatorias coherentes por agente (dirección, duración, teléfono, apertura en 14 días que cruza medianoche, estado ponderado, tipificación si resuelta).
+- ✅ Tipificar: `PATCH /interactions/{calls|tickets}/:id/disposition`.
+- ✅ Catálogos: `GET /roles`, `GET /customers`, `GET /dispositions`, `GET /agent-availabilities`.
+- ✅ Cambiar disponibilidad: `PATCH /users/:id/availability`.
+- ✅ Seed de catálogos (5 tipificaciones + 5 disponibilidades).
+
+## Etapa 7 — Disponibilidad del agente 🔄
+- ✅ Entidad `AgentAvailability` (catálogo, `can_take_calls`) + FK `user.availability_id` + migración + seed.
+- ✅ Endpoint para cambiar la disponibilidad (con validación).
+- ⏳ `AgentAvailabilityLog` (historial) + métricas por franja (ocupación/adherencia) — sigue como opcional.
 
 ## Etapa 2 — Gestión de interacciones (API) 🔄 (código listo, falta probar en runtime)
 - ✅ Crear: `POST /interactions/calls` y `/tickets` (DTOs con validación).

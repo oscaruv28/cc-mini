@@ -1,6 +1,7 @@
 import { Entity, Enum, ManyToOne, PrimaryKey, Property } from '@mikro-orm/core';
 import { UserRole } from './enums';
 import { Customer } from './customer.entity';
+import { AgentAvailability } from './agent-availability.entity';
 
 /**
  * Miembro del equipo de soporte de una empresa (`Customer`).
@@ -27,6 +28,10 @@ export class User {
 
   @ManyToOne(() => Customer)
   customer!: Customer;
+
+  /** Disponibilidad actual del agente (nullable; aplica a agentes). */
+  @ManyToOne(() => AgentAvailability, { nullable: true })
+  availability?: AgentAvailability;
 
   @Property({ columnType: 'timestamptz' })
   createdAt: Date = new Date();

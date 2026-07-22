@@ -41,7 +41,7 @@ Entidad de referencia; **no** implica multi-tenancy real (sin aislamiento de dat
 | role | enum | `ADMIN` \| `AGENT` |
 | password_hash | varchar (null) | hash bcrypt; `hidden`, nunca se serializa |
 | customer_id | FK → Customer | la empresa a la que pertenece |
-| agent_availability_id | FK → AgentAvailability | disponibilidad actual (nullable; aplica a agentes) |
+| availability_id | FK → AgentAvailability | disponibilidad actual (nullable; aplica a agentes) |
 | created_at | timestamptz | |
 
 Se agregó **login JWT simple** (a pedido; el enunciado no lo exige) → columna `password_hash`. Es **autenticación** (quién eres), no **autorización** por rol: cualquier usuario autenticado accede a los endpoints. El `role` viaja en el token para un futuro control por rol. Sin multi-tenancy real.
