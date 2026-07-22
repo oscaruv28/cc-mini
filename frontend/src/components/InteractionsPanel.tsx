@@ -38,7 +38,6 @@ export default function InteractionsPanel({
   const limit = 10;
 
   const agentName = useMemo(() => new Map(agents.map((a) => [a.id, a.name])), [agents]);
-  const dispLabel = useMemo(() => new Map(dispositions.map((d) => [d.id, d.label])), [dispositions]);
 
   const filters: InteractionFilters = {
     page,
@@ -105,43 +104,46 @@ export default function InteractionsPanel({
                   <th className="px-3 py-2">Apertura</th>
                   <th className="px-3 py-2">Cierre</th>
                   <th className="px-3 py-2">Tipificación</th>
-                  <th className="px-3 py-2">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {data.items.map((it: InteractionRow) => (
                   <tr key={it.id} className="border-t border-slate-100">
                     <td className="px-3 py-2">{it.type}</td>
-                    <td className="px-3 py-2"><Badge>{it.status}</Badge></td>
+                    <td className="px-3 py-2">
+                      {allowStatusChange && NEXT[it.status] ? (
+                        <button
+                          type="button"
+                          title={`Clic para pasar a ${NEXT[it.status]}`}
+                          className="inline-flex items-center gap-1 rounded hover:opacity-80"
+                          onClick={() => act(() => interactionsApi.changeStatus(it.type, it.id, NEXT[it.status]!))}
+                        >
+                          <Badge>{it.status}</Badge>
+                          <span className="text-xs font-medium text-indigo-600">→ {NEXT[it.status]}</span>
+                        </button>
+                      ) : (
+                        <Badge>{it.status}</Badge>
+                      )}
+                    </td>
                     {!lockedAgentId && <td className="px-3 py-2">{agentName.get(it.agentId) ?? '—'}</td>}
                     <td className="px-3 py-2 text-slate-500">{fmtDateTime(it.openedAt)}</td>
                     <td className="px-3 py-2 text-slate-500">{fmtDateTime(it.closedAt)}</td>
-                    <td className="px-3 py-2 text-slate-500">
-                      {it.dispositionId ? dispLabel.get(it.dispositionId) ?? '—' : '—'}
-                    </td>
                     <td className="px-3 py-2">
-                      <div className="flex items-center gap-2">
-                        {allowStatusChange && NEXT[it.status] && (
-                          <Button variant="ghost" onClick={() => act(() => interactionsApi.changeStatus(it.type, it.id, NEXT[it.status]!))}>
-                            → {NEXT[it.status]}
-                          </Button>
-                        )}
-                        <Select
-                          className="w-36"
-                          value={it.dispositionId ?? ''}
-                          onChange={(e) => e.target.value && act(() => interactionsApi.tipify(it.type, it.id, e.target.value))}
-                        >
-                          <option value="">Tipificar…</option>
-                          {dispositions.map((d) => (
-                            <option key={d.id} value={d.id}>{d.label}</option>
-                          ))}
-                        </Select>
-                      </div>
+                      <Select
+                        className="w-40"
+                        value={it.dispositionId ?? ''}
+                        onChange={(e) => e.target.value && act(() => interactionsApi.tipify(it.type, it.id, e.target.value))}
+                      >
+                        <option value="">Sin tipificar</option>
+                        {dispositions.map((d) => (
+                          <option key={d.id} value={d.id}>{d.label}</option>
+                        ))}
+                      </Select>
                     </td>
                   </tr>
                 ))}
                 {data.items.length === 0 && (
-                  <tr><td colSpan={7} className="px-3 py-6 text-center text-slate-400">Sin resultados</td></tr>
+                  <tr><td colSpan={lockedAgentId ? 5 : 6} className="px-3 py-6 text-center text-slate-400">Sin resultados</td></tr>
                 )}
               </tbody>
             </table>
