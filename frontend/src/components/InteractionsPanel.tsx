@@ -18,6 +18,8 @@ interface Props {
   reloadKey?: number;
   /** El agente avanza el estado (flujo operativo). El admin solo edita la tipificación. */
   allowStatusChange?: boolean;
+  /** Fija el tipo (p. ej. módulo de Tickets) y oculta el filtro de tipo. */
+  lockedType?: 'CALL' | 'TICKET';
 }
 
 export default function InteractionsPanel({
@@ -26,6 +28,7 @@ export default function InteractionsPanel({
   dispositions,
   reloadKey = 0,
   allowStatusChange = false,
+  lockedType,
 }: Props) {
   const [status, setStatus] = useState('');
   const [type, setType] = useState('');
@@ -42,12 +45,12 @@ export default function InteractionsPanel({
     limit,
     ...(lockedAgentId ? { agentId: lockedAgentId } : agentId ? { agentId } : {}),
     ...(status ? { status: status as InteractionStatus } : {}),
-    ...(type ? { type: type as 'CALL' | 'TICKET' } : {}),
+    ...(lockedType ? { type: lockedType } : type ? { type: type as 'CALL' | 'TICKET' } : {}),
   };
 
   const { data, loading, error, reload } = useAsync(
     () => interactionsApi.list(filters),
-    [status, type, agentId, page, lockedAgentId, reloadKey],
+    [status, type, agentId, page, lockedAgentId, lockedType, reloadKey],
   );
 
   const act = async (fn: () => Promise<unknown>) => {
@@ -69,11 +72,13 @@ export default function InteractionsPanel({
           <option value="IN_PROGRESS">IN_PROGRESS</option>
           <option value="RESOLVED">RESOLVED</option>
         </Select>
-        <Select value={type} onChange={(e) => { setPage(1); setType(e.target.value); }} className="w-40">
-          <option value="">Tipo: todos</option>
-          <option value="CALL">CALL</option>
-          <option value="TICKET">TICKET</option>
-        </Select>
+        {!lockedType && (
+          <Select value={type} onChange={(e) => { setPage(1); setType(e.target.value); }} className="w-40">
+            <option value="">Tipo: todos</option>
+            <option value="CALL">CALL</option>
+            <option value="TICKET">TICKET</option>
+          </Select>
+        )}
         {!lockedAgentId && (
           <Select value={agentId} onChange={(e) => { setPage(1); setAgentId(e.target.value); }} className="w-48">
             <option value="">Agente: todos</option>

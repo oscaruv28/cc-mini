@@ -9,6 +9,7 @@ export default function AppLayout() {
       ? [
           { to: '/dashboard', label: 'Dashboard' },
           { to: '/interactions', label: 'Interacciones' },
+          { to: '/tickets', label: 'Tickets' },
           { to: '/agents', label: 'Agentes' },
         ]
       : [{ to: '/agent', label: 'Mi workspace' }];

@@ -25,8 +25,12 @@ export const interactionsApi = {
       })
       .then((r) => r.data),
 
-  createTicket: (body: { agentId: string; subject: string; priority?: string }) =>
-    api.post('/interactions/tickets', body).then((r) => r.data),
+  createTicket: (body: {
+    agentId: string;
+    subject: string;
+    description?: string;
+    priority?: string;
+  }) => api.post('/interactions/tickets', body).then((r) => r.data),
 
   changeStatus: (type: InteractionType, id: string, status: InteractionStatus) =>
     api

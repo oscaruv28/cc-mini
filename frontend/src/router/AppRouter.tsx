@@ -6,6 +6,7 @@ import LoginPage from '../modules/auth/LoginPage';
 import AgentWorkspace from '../modules/agent/AgentWorkspace';
 import DashboardPage from '../modules/admin/DashboardPage';
 import InteractionsPage from '../modules/admin/InteractionsPage';
+import TicketsPage from '../modules/admin/TicketsPage';
 import AgentsAdminPage from '../modules/admin/AgentsAdminPage';
 import type { Role } from '../types';
 
@@ -35,6 +36,7 @@ export default function AppRouter() {
         <Route path="agent" element={<AgentWorkspace />} />
         <Route path="dashboard" element={<RequireRole role="ADMIN"><DashboardPage /></RequireRole>} />
         <Route path="interactions" element={<RequireRole role="ADMIN"><InteractionsPage /></RequireRole>} />
+        <Route path="tickets" element={<RequireRole role="ADMIN"><TicketsPage /></RequireRole>} />
         <Route path="agents" element={<RequireRole role="ADMIN"><AgentsAdminPage /></RequireRole>} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
