@@ -36,11 +36,12 @@
 - ⏳ Endpoint/UI de disponibilidad y métricas por franja (ocupación/adherencia).
 - Nota: ninguna métrica requerida depende de esto; se cablea al final.
 
-## Etapa 2 — Gestión de interacciones (API) ⏳
-- ⏳ Crear interacción (tipo llamada/ticket, agente, timestamp de apertura).
-- ⏳ Cambiar estado con validación de transiciones.
-- ⏳ Listar con filtros (agente, estado, rango de fechas) + paginación.
-- ⏳ Manejo explícito de errores y entradas inválidas.
+## Etapa 2 — Gestión de interacciones (API) 🔄 (código listo, falta probar en runtime)
+- ✅ Crear: `POST /interactions/calls` y `/tickets` (DTOs con validación).
+- ✅ Cambiar estado con validación de transiciones (`OPEN→IN_PROGRESS→RESOLVED`, `closed_at` al resolver).
+- ✅ Listar `GET /interactions` sobre la vista, con filtros (agente/estado/tipo/rango) + paginación.
+- ✅ Manejo de errores (400 agente inválido, 404 no existe, 409 transición inválida).
+- ⏳ **Verificar en runtime** (requiere Postgres) + smoke test de endpoints.
 
 ## Etapa 3 — Endpoint de métricas (núcleo) ⏳
 - ⏳ Por agente en un rango: total, resueltas, tasa de resolución, tiempo promedio de resolución.
