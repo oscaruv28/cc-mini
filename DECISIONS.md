@@ -50,9 +50,23 @@ cc-mini/
 ---
 
 ## 2. Modelo de datos
-> _Pendiente — se completa en la etapa de entidades/DTOs._
+
+Detalle completo (tablas, tipos, índices) en [docs/DATA-MODEL.md](./docs/DATA-MODEL.md) · diagrama en [docs/data-model.drawio](./docs/data-model.drawio).
 
 Principio guía: **diseñar pensando en cómo se consultará** (métricas por agente y serie por día), no solo en cómo se guarda.
+
+**Entidades:** `Customer` (empresa cliente) → `User` (equipo de soporte, rol ADMIN/AGENT) → `Call` / `Ticket` (interacciones). Catálogo `Disposition` (tipificación). Disponibilidad del agente: `AgentAvailability` (catálogo, con `can_take_calls`) + `AgentAvailabilityLog` (historial).
+
+**Distinción de nombres (evita confusión):** `Disposition` = cómo concluyó la **interacción** (tipificación). `AgentAvailability` = disponibilidad de la **persona/agente**. Son ejes distintos sobre entidades distintas; la palabra "disposición" en español (disponibilidad) inducía a mezclarlos.
+
+**Alcance de construcción:** `AgentAvailability` + `AgentAvailabilityLog` no las requiere ninguna métrica del enunciado. Se **modelan** (crédito de diseño) pero se **construyen solo si sobra tiempo**, después del núcleo (interacciones + métricas + zona horaria). Disciplina explícita: el enunciado premia lo acotado.
+
+**Decisiones clave:**
+- **Dos entidades `Call` y `Ticket`** (no una tabla única), por realismo de dominio: llamada ≠ ticket. Comparten ciclo de vida vía clase base abstracta de MikroORM (reúso sin herencia de tabla).
+- **Vista de solo lectura `v_interaction`** (`UNION ALL` de ambas): las métricas agregan sobre la vista con un solo `GROUP BY`, sin duplicar lógica por tabla. Separa modelo de escritura (2 entidades) del de lectura (1 superficie) — CQRS-lite.
+- **`Customer` se alcanza vía `User`** (el agente pertenece a una empresa), no como FK directa en la interacción. Trade-off: métricas por empresa piden un join extra; no denormalizo porque ninguna métrica requerida lo necesita.
+- **`status` es enum** (3 estados fijos), no tabla. **`timestamptz` en UTC**, conversión a `America/Bogota` en la consulta. **`closed_at` nullable**, solo al resolver. **PK `uuid`** generada por la BD (`gen_random_uuid()`): ids opacos, no enumerables, seguros de exponer.
+- **Sin auth**: `role` solo modela responsabilidades. Sin multi-tenancy real.
 
 ---
 

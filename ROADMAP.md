@@ -20,13 +20,21 @@
 - ⏳ Entrypoint que ejecute `migration:up` + `seed` al arrancar el contenedor (se cablea cuando existan migraciones/seed).
 - ⏳ Servicio `frontend` en docker-compose (etapa de frontend).
 
-## Etapa 1 — Modelo de datos ⏳
-- ⏳ Entidades del dominio (agente, interacción) con MikroORM.
-- ⏳ Estados de interacción: `abierta → en_progreso → resuelta` (+ `closedAt` al resolver).
-- ⏳ Índices pensados para las consultas de métricas (agente, estado, timestamps).
+## Etapa 1 — Modelo de datos 🔄
+- ✅ Esquema documentado ([docs/DATA-MODEL.md](./docs/DATA-MODEL.md)) + diagrama ([docs/data-model.drawio](./docs/data-model.drawio)).
+- ✅ Decisiones de modelo en DECISIONS §2.
+- ✅ Entidades MikroORM núcleo: `Customer`, `User`, `BaseInteraction` (abstracta), `Call`, `Ticket`, `Disposition` — DDL validado con `schema:create --dump`.
+- ✅ Enums (`InteractionStatus`, `InteractionType`, `CallDirection`, `TicketPriority`, `UserRole`).
+- ✅ Índices `(agent_id, opened_at)`, `(opened_at)`, `(status)` en `call` y `ticket`.
+- ✅ PK `uuid` (`gen_random_uuid()`).
+- ⏳ Migración inicial (+ vista `v_interaction` con `UNION ALL`) — requiere BD arriba o migración a mano.
 - ⏳ DTOs de entrada/salida con validación.
-- ⏳ Migración inicial.
-- ⏳ Documentar el modelo en DECISIONS §2.
+
+## Etapa 7 — Disponibilidad del agente (solo si sobra tiempo) ⏳
+- ⏳ Entidades `AgentAvailability` (catálogo, `can_take_calls`) + `AgentAvailabilityLog` (historial).
+- ⏳ Seed ligero de estados.
+- ⏳ Endpoint/UI de disponibilidad y métricas por franja (ocupación/adherencia).
+- Nota: ninguna métrica requerida depende de esto; se cablea al final.
 
 ## Etapa 2 — Gestión de interacciones (API) ⏳
 - ⏳ Crear interacción (tipo llamada/ticket, agente, timestamp de apertura).
