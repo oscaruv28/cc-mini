@@ -70,13 +70,25 @@ export default function DashboardPage() {
             <p className="mb-2 text-xs text-slate-400">Haz clic en un agente para ver sus interacciones y comprobar los números.</p>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-slate-50 text-left text-slate-500">
+                <thead className="bg-slate-50 text-left align-top text-slate-500">
                   <tr>
                     <th className="px-3 py-2">Agente</th>
-                    <th className="px-3 py-2" title="Llamadas + tickets">Total</th>
-                    <th className="px-3 py-2" title="En estado RESOLVED">Resueltas</th>
-                    <th className="px-3 py-2" title="Resueltas ÷ total">Tasa</th>
-                    <th className="px-3 py-2" title="Promedio de cierre − apertura de las resueltas">Tiempo prom. resolución</th>
+                    <th className="px-3 py-2">
+                      Interacciones
+                      <span className="block text-[10px] font-normal text-slate-400">llamadas + tickets</span>
+                    </th>
+                    <th className="px-3 py-2">
+                      Resueltas
+                      <span className="block text-[10px] font-normal text-slate-400">cerradas (RESOLVED)</span>
+                    </th>
+                    <th className="px-3 py-2">
+                      Tasa de resolución
+                      <span className="block text-[10px] font-normal text-slate-400">resueltas ÷ total</span>
+                    </th>
+                    <th className="px-3 py-2">
+                      Tiempo prom. resolución
+                      <span className="block text-[10px] font-normal text-slate-400">promedio de (cierre − apertura)</span>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
