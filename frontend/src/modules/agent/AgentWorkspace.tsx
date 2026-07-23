@@ -13,16 +13,31 @@ export default function AgentWorkspace() {
   const agentId = user!.id; // agente de la sesión actual
 
   const { data, loading, error, reload } = useAsync(
-    () => Promise.all([catalogApi.dispositions(), catalogApi.availabilities(), usersApi.get(agentId)]),
+    () =>
+      Promise.all([
+        catalogApi.dispositions(),
+        catalogApi.availabilities(),
+        usersApi.get(agentId),
+        usersApi.list({ role: 'AGENT', limit: 100 }),
+      ]),
     [agentId],
   );
 
+  const AV_COLOR: Record<string, string> = {
+    AVAILABLE: 'bg-emerald-500',
+    BUSY: 'bg-red-500',
+    ON_BREAK: 'bg-amber-500',
+    ACW: 'bg-indigo-500',
+    OFFLINE: 'bg-slate-400',
+  };
+
   const [reloadKey, setReloadKey] = useState(0);
   const [availError, setAvailError] = useState<string | null>(null);
+  const [avFilter, setAvFilter] = useState('');
 
   if (loading) return <Spinner />;
   if (error || !data) return <ErrorState message={error ?? 'Error'} onRetry={reload} />;
-  const [dispositions, availabilities, me] = data;
+  const [dispositions, availabilities, me, team] = data;
 
   const changeAvailability = async (availabilityId: string) => {
     setAvailError(null);
@@ -57,6 +72,31 @@ export default function AgentWorkspace() {
           onRegistered={() => setReloadKey((k) => k + 1)}
         />
       </div>
+
+      <Card title="Disponibilidad del equipo">
+        <div className="mb-3 flex items-center gap-2">
+          <span className="text-sm text-slate-500">Filtrar por disponibilidad:</span>
+          <Select value={avFilter} onChange={(e) => setAvFilter(e.target.value)} className="w-52">
+            <option value="">Todas</option>
+            {availabilities.map((a) => (
+              <option key={a.id} value={a.code}>{a.label}</option>
+            ))}
+          </Select>
+        </div>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {team.items
+            .filter((u) => !avFilter || u.availability?.code === avFilter)
+            .map((u) => (
+            <div key={u.id} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm">
+              <span className={`h-2.5 w-2.5 rounded-full ${AV_COLOR[u.availability?.code ?? ''] ?? 'bg-slate-300'}`} />
+              <span className="flex-1 font-medium text-slate-700">
+                {u.name}{u.id === agentId && <span className="text-slate-400"> (tú)</span>}
+              </span>
+              <span className="text-xs text-slate-500">{u.availability?.label ?? 'Sin estado'}</span>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       <Card title="Mis llamadas">
         <InteractionsPanel
