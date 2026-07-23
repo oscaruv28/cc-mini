@@ -73,8 +73,15 @@ export interface DailyVolume {
   total: number;
 }
 
+export interface DispositionMetric {
+  code: string;
+  label: string;
+  total: number;
+}
+
 export interface Metrics {
   range: { from: string; to: string; timezone: string };
   perAgent: AgentMetric[];
   dailyVolume: DailyVolume[];
+  byDisposition: DispositionMetric[];
 }

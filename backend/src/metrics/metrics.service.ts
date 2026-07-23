@@ -13,6 +13,11 @@ interface DailyRow {
   day: string;
   total: number;
 }
+interface DispRow {
+  code: string;
+  label: string;
+  total: number;
+}
 
 /**
  * Métricas operativas. Toda la agregación ocurre en SQL sobre la vista
@@ -63,15 +68,33 @@ export class MetricsService {
       group by day
       order by day`;
 
+    // Desglose por tipificación (incluye "Sin tipificar" con left join).
+    const dispSql = `
+      select coalesce(d.code, 'SIN_TIPIFICAR') as code,
+             coalesce(d.label, 'Sin tipificar') as label,
+             count(*)::int as total
+      from v_interaction v
+      left join disposition d on d.id = v.disposition_id
+      where v.customer_id = ?
+        and v.opened_at >= ((?::timestamp) at time zone ?)
+        and v.opened_at <  (((?::timestamp) + interval '1 day') at time zone ?)
+        ${agentFilter}
+      group by 1, 2
+      order by total desc`;
+
     const perAgentParams: unknown[] = [customerId, q.from, this.tz, q.to, this.tz];
     if (q.agentId) perAgentParams.push(q.agentId);
 
     const dailyParams: unknown[] = [this.tz, customerId, q.from, this.tz, q.to, this.tz];
     if (q.agentId) dailyParams.push(q.agentId);
 
-    const [perAgentRows, dailyRows] = await Promise.all([
+    const dispParams: unknown[] = [customerId, q.from, this.tz, q.to, this.tz];
+    if (q.agentId) dispParams.push(q.agentId);
+
+    const [perAgentRows, dailyRows, dispRows] = await Promise.all([
       conn.execute<PerAgentRow[]>(perAgentSql, perAgentParams),
       conn.execute<DailyRow[]>(dailySql, dailyParams),
+      conn.execute<DispRow[]>(dispSql, dispParams),
     ]);
 
     const perAgent = perAgentRows.map((r) => {
@@ -90,11 +113,17 @@ export class MetricsService {
     });
 
     const dailyVolume = dailyRows.map((r) => ({ day: r.day, total: Number(r.total) }));
+    const byDisposition = dispRows.map((r) => ({
+      code: r.code,
+      label: r.label,
+      total: Number(r.total),
+    }));
 
     return {
       range: { from: q.from, to: q.to, timezone: this.tz },
       perAgent,
       dailyVolume,
+      byDisposition,
     };
   }
 }

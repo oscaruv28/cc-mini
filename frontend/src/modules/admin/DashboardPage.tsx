@@ -118,6 +118,32 @@ export default function DashboardPage() {
             </Card>
           )}
 
+          <Card title="Por tipificación">
+            {data.byDisposition.length === 0 ? (
+              <p className="text-sm text-slate-400">Sin datos en el rango</p>
+            ) : (
+              <div className="space-y-1.5">
+                {(() => {
+                  const maxDisp = Math.max(1, ...data.byDisposition.map((d) => d.total));
+                  return data.byDisposition.map((d) => (
+                    <div key={d.code} className="flex items-center gap-3 text-sm">
+                      <span className="w-40 shrink-0 text-slate-600">{d.label}</span>
+                      <div className="h-4 flex-1 rounded bg-slate-100">
+                        <div
+                          className="h-4 rounded bg-indigo-500"
+                          style={{ width: `${(d.total / maxDisp) * 100}%` }}
+                        />
+                      </div>
+                      <span className="w-16 shrink-0 text-right font-medium text-slate-700">
+                        {d.total} · {pct(d.total / totalInteractions)}
+                      </span>
+                    </div>
+                  ));
+                })()}
+              </div>
+            )}
+          </Card>
+
           <Card title="Volumen de interacciones por día">
             {data.dailyVolume.length === 0 ? (
               <p className="text-sm text-slate-400">Sin datos en el rango</p>
