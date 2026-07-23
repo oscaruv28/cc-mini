@@ -1,8 +1,26 @@
+import { useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useAsync } from '../hooks/useAsync';
+import { usersApi } from '../api/users.api';
+import { AvailabilityBulb, AVAILABILITY_CHANGED } from './AvailabilityBulb';
 
 export default function AppLayout() {
   const { user, logout } = useAuth();
+  const isAgent = user?.role === 'AGENT';
+
+  // Disponibilidad del agente en sesión (para el bombillito del header).
+  const { data: me, reload } = useAsync(
+    () => (isAgent && user ? usersApi.get(user.id) : Promise.resolve(null)),
+    [user?.id, isAgent],
+  );
+
+  // Se mantiene en sync cuando el agente cambia su estado en el workspace.
+  useEffect(() => {
+    const onChange = () => reload();
+    window.addEventListener(AVAILABILITY_CHANGED, onChange);
+    return () => window.removeEventListener(AVAILABILITY_CHANGED, onChange);
+  }, [reload]);
 
   const links =
     user?.role === 'ADMIN'
@@ -37,7 +55,10 @@ export default function AppLayout() {
             </nav>
           </div>
           <div className="flex items-center gap-3 text-sm">
-            <span className="text-slate-500">
+            <span className="flex items-center gap-1.5 text-slate-500">
+              {isAgent && (
+                <AvailabilityBulb code={me?.availability?.code} label={me?.availability?.label} />
+              )}
               {user?.name} · <span className="font-medium text-slate-700">{user?.role}</span>
             </span>
             <button onClick={logout} className="rounded-md border border-slate-300 px-3 py-1.5 font-medium text-slate-700 hover:bg-slate-50">

@@ -6,6 +6,7 @@ import { usersApi } from '../../api/users.api';
 import { apiError } from '../../api/client';
 import { Card, ErrorState, Field, Select, Spinner } from '../../components/ui';
 import InteractionsPanel from '../../components/InteractionsPanel';
+import { AvailabilityBulb, AVAILABILITY_CHANGED } from '../../components/AvailabilityBulb';
 import Softphone from './Softphone';
 
 export default function AgentWorkspace() {
@@ -23,14 +24,6 @@ export default function AgentWorkspace() {
     [agentId],
   );
 
-  const AV_COLOR: Record<string, string> = {
-    AVAILABLE: 'bg-emerald-500',
-    BUSY: 'bg-red-500',
-    ON_BREAK: 'bg-amber-500',
-    ACW: 'bg-indigo-500',
-    OFFLINE: 'bg-slate-400',
-  };
-
   const [reloadKey, setReloadKey] = useState(0);
   const [availError, setAvailError] = useState<string | null>(null);
   const [avFilter, setAvFilter] = useState('');
@@ -44,6 +37,8 @@ export default function AgentWorkspace() {
     try {
       await usersApi.setAvailability(agentId, availabilityId);
       await reload();
+      // Avisa al header (bombillito del agente en sesión) para que se refresque.
+      window.dispatchEvent(new Event(AVAILABILITY_CHANGED));
     } catch (e) {
       setAvailError(apiError(e));
     }
@@ -88,7 +83,7 @@ export default function AgentWorkspace() {
             .filter((u) => !avFilter || u.availability?.code === avFilter)
             .map((u) => (
             <div key={u.id} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm">
-              <span className={`h-2.5 w-2.5 rounded-full ${AV_COLOR[u.availability?.code ?? ''] ?? 'bg-slate-300'}`} />
+              <AvailabilityBulb code={u.availability?.code} label={u.availability?.label} />
               <span className="flex-1 font-medium text-slate-700">
                 {u.name}{u.id === agentId && <span className="text-slate-400"> (tú)</span>}
               </span>
