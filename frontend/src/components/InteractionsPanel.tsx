@@ -20,6 +20,9 @@ interface Props {
   allowStatusChange?: boolean;
   /** Fija el tipo (p. ej. módulo de Tickets) y oculta el filtro de tipo. */
   lockedType?: 'CALL' | 'TICKET';
+  /** Rango de fechas fijo (para cruzar con las métricas del dashboard). */
+  from?: string;
+  to?: string;
 }
 
 export default function InteractionsPanel({
@@ -29,6 +32,8 @@ export default function InteractionsPanel({
   reloadKey = 0,
   allowStatusChange = false,
   lockedType,
+  from,
+  to,
 }: Props) {
   const [status, setStatus] = useState('');
   const [type, setType] = useState('');
@@ -45,11 +50,13 @@ export default function InteractionsPanel({
     ...(lockedAgentId ? { agentId: lockedAgentId } : agentId ? { agentId } : {}),
     ...(status ? { status: status as InteractionStatus } : {}),
     ...(lockedType ? { type: lockedType } : type ? { type: type as 'CALL' | 'TICKET' } : {}),
+    ...(from ? { from } : {}),
+    ...(to ? { to } : {}),
   };
 
   const { data, loading, error, reload } = useAsync(
     () => interactionsApi.list(filters),
-    [status, type, agentId, page, lockedAgentId, lockedType, reloadKey],
+    [status, type, agentId, page, lockedAgentId, lockedType, from, to, reloadKey],
   );
 
   const act = async (fn: () => Promise<unknown>) => {
