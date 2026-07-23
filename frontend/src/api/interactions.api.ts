@@ -17,6 +17,14 @@ export const interactionsApi = {
       .get<Paginated<InteractionRow>>('/interactions', { params: filters })
       .then((r) => r.data),
 
+  createCall: (body: {
+    agentId: string;
+    direction: string;
+    phoneNumber?: string;
+    durationSec?: number;
+    openedAt?: string;
+  }) => api.post<{ id: string }>('/interactions/calls', body).then((r) => r.data),
+
   simulate: (agentId: string, count: number) =>
     api
       .post<{ created: number; ids: string[] }>('/interactions/calls/simulate', {
