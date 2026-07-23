@@ -51,7 +51,11 @@ export default function AgentWorkspace() {
           {availError && <div className="mt-2"><ErrorState message={availError} /></div>}
         </Card>
 
-        <Softphone agentId={agentId} onRegistered={() => setReloadKey((k) => k + 1)} />
+        <Softphone
+          agentId={agentId}
+          dispositions={dispositions}
+          onRegistered={() => setReloadKey((k) => k + 1)}
+        />
       </div>
 
       <Card title="Mis llamadas">

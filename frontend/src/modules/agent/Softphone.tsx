@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { interactionsApi } from '../../api/interactions.api';
 import { apiError } from '../../api/client';
-import { Card } from '../../components/ui';
+import { Card, Select } from '../../components/ui';
+import type { Disposition } from '../../types';
 
 interface Contact {
   name: string;
@@ -22,17 +23,22 @@ const initials = (n: string) =>
 const mmss = (s: number) =>
   `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
-/** Softphone: agenda de contactos + llamada simulada animada que se registra. */
+type Phase = 'ringing' | 'in' | 'wrap';
+
+/** Softphone: agenda + llamada animada. Al colgar, wrap-up: tipificar y guardar. */
 export default function Softphone({
   agentId,
+  dispositions,
   onRegistered,
 }: {
   agentId: string;
+  dispositions: Disposition[];
   onRegistered: () => void;
 }) {
   const [active, setActive] = useState<Contact | null>(null);
-  const [phase, setPhase] = useState<'ringing' | 'in'>('ringing');
+  const [phase, setPhase] = useState<Phase>('ringing');
   const [seconds, setSeconds] = useState(0);
+  const [dispId, setDispId] = useState('');
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const startRef = useRef<Date>(new Date());
@@ -43,20 +49,24 @@ export default function Softphone({
       const t = setTimeout(() => setPhase('in'), 1600);
       return () => clearTimeout(t);
     }
-    const iv = setInterval(() => setSeconds((s) => s + 1), 1000);
-    return () => clearInterval(iv);
+    if (phase === 'in') {
+      const iv = setInterval(() => setSeconds((s) => s + 1), 1000);
+      return () => clearInterval(iv);
+    }
+    // 'wrap': el cronómetro se detiene.
   }, [active, phase]);
 
   const startCall = (c: Contact) => {
     setMsg(null);
     setSeconds(0);
+    setDispId('');
     setPhase('ringing');
     startRef.current = new Date();
     setActive(c);
   };
 
-  const hangUp = async () => {
-    if (!active) return;
+  const save = async () => {
+    if (!active || !dispId) return;
     setSaving(true);
     try {
       const dur = Math.max(seconds, 1);
@@ -67,10 +77,10 @@ export default function Softphone({
         durationSec: dur,
         openedAt: startRef.current.toISOString(),
       });
-      // La llamada terminó: se marca resuelta (queda registrada con su duración).
       await interactionsApi.changeStatus('CALL', call.id, 'IN_PROGRESS');
       await interactionsApi.changeStatus('CALL', call.id, 'RESOLVED');
-      setMsg(`Llamada con ${active.name} registrada (${mmss(dur)}). Tipifícala abajo.`);
+      await interactionsApi.tipify('CALL', call.id, dispId); // tipificación elegida en el wrap-up
+      setMsg(`Llamada con ${active.name} registrada (${mmss(dur)}).`);
       setActive(null);
       onRegistered();
     } catch (e) {
@@ -117,27 +127,55 @@ export default function Softphone({
             </div>
             <h3 className="text-lg font-semibold text-slate-800">{active.name}</h3>
             <p className="text-sm text-slate-400">{active.phone}</p>
-            <p className="mt-2 text-sm font-medium text-slate-600">
-              {phase === 'ringing' ? 'Llamando…' : `En llamada · ${mmss(seconds)}`}
-            </p>
-            <div className="mt-6 flex justify-center">
-              {phase === 'ringing' ? (
-                <button
-                  onClick={() => setActive(null)}
-                  className="rounded-full bg-slate-200 px-6 py-2 font-medium text-slate-700 hover:bg-slate-300"
-                >
-                  Cancelar
-                </button>
-              ) : (
-                <button
-                  onClick={hangUp}
-                  disabled={saving}
-                  className="rounded-full bg-red-600 px-8 py-2 font-medium text-white hover:bg-red-700 disabled:opacity-50"
-                >
-                  {saving ? 'Guardando…' : '⛔ Colgar'}
-                </button>
-              )}
-            </div>
+
+            {phase === 'ringing' && (
+              <>
+                <p className="mt-2 text-sm font-medium text-slate-600">Llamando…</p>
+                <div className="mt-6 flex justify-center">
+                  <button onClick={() => setActive(null)} className="rounded-full bg-slate-200 px-6 py-2 font-medium text-slate-700 hover:bg-slate-300">
+                    Cancelar
+                  </button>
+                </div>
+              </>
+            )}
+
+            {phase === 'in' && (
+              <>
+                <p className="mt-2 text-sm font-medium text-slate-600">En llamada · {mmss(seconds)}</p>
+                <div className="mt-6 flex justify-center">
+                  <button onClick={() => setPhase('wrap')} className="rounded-full bg-red-600 px-8 py-2 font-medium text-white hover:bg-red-700">
+                    ⛔ Colgar
+                  </button>
+                </div>
+              </>
+            )}
+
+            {phase === 'wrap' && (
+              <>
+                <p className="mt-2 text-sm text-slate-500">Llamada finalizada · duración {mmss(seconds)}</p>
+                <div className="mt-4 text-left">
+                  <label className="mb-1 block text-sm font-medium text-slate-600">Tipificación (obligatoria)</label>
+                  <Select value={dispId} onChange={(e) => setDispId(e.target.value)}>
+                    <option value="" disabled>Selecciona cómo concluyó…</option>
+                    {dispositions.map((d) => (
+                      <option key={d.id} value={d.id}>{d.label}</option>
+                    ))}
+                  </Select>
+                </div>
+                <div className="mt-6 flex justify-center gap-3">
+                  <button onClick={() => setActive(null)} className="rounded-full bg-slate-100 px-5 py-2 font-medium text-slate-600 hover:bg-slate-200">
+                    Descartar
+                  </button>
+                  <button
+                    onClick={save}
+                    disabled={!dispId || saving}
+                    className="rounded-full bg-indigo-600 px-6 py-2 font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+                  >
+                    {saving ? 'Guardando…' : 'Guardar llamada'}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
