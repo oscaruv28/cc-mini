@@ -14,6 +14,11 @@ export class CreateTicketDto {
   @IsUUID()
   agentId!: string;
 
+  @ApiPropertyOptional({ format: 'uuid', description: 'Llamada que originó el ticket' })
+  @IsOptional()
+  @IsUUID()
+  callId?: string;
+
   @ApiProperty()
   @IsString()
   @IsNotEmpty()

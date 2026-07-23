@@ -62,6 +62,12 @@ export interface TicketDetail {
   closedAt?: string | null;
   agent?: { name: string };
   disposition?: { label: string } | null;
+  call?: {
+    phoneNumber?: string | null;
+    direction?: string;
+    durationSec?: number | null;
+    openedAt?: string;
+  } | null;
 }
 
 export interface Paginated<T> {

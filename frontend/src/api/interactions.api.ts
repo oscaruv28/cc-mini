@@ -47,6 +47,7 @@ export const interactionsApi = {
     subject: string;
     description?: string;
     priority?: string;
+    callId?: string;
   }) => api.post('/interactions/tickets', body).then((r) => r.data),
 
   changeStatus: (type: InteractionType, id: string, status: InteractionStatus) =>

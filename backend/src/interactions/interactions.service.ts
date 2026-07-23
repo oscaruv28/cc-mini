@@ -54,6 +54,13 @@ export class InteractionsService {
     if (dto.priority) ticket.priority = dto.priority;
     ticket.channel = dto.channel;
     if (dto.openedAt) ticket.openedAt = new Date(dto.openedAt);
+    if (dto.callId) {
+      const call = await this.em.findOne(Call, { id: dto.callId, agent: { customer: customerId } });
+      if (!call) {
+        throw new BadRequestException('La llamada relacionada no existe');
+      }
+      ticket.call = call;
+    }
     await this.em.persistAndFlush(ticket);
     return ticket;
   }
@@ -160,7 +167,7 @@ export class InteractionsService {
     const entity =
       type === InteractionType.CALL
         ? await this.em.findOne(Call, where, { populate: ['agent', 'disposition'] })
-        : await this.em.findOne(Ticket, where, { populate: ['agent', 'disposition'] });
+        : await this.em.findOne(Ticket, where, { populate: ['agent', 'disposition', 'call'] });
     if (!entity) {
       throw new NotFoundException(`No existe ${type.toLowerCase()} con id ${id}`);
     }

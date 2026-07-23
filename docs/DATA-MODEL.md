@@ -11,7 +11,7 @@
   - `AGENT`: atiende y **crea** las interacciones (genera la data).
 - **Call / Ticket** — las dos entidades de interacción, cada una asignada a un agente (`User` con rol `AGENT`).
 
-Cadena de pertenencia: `Interaction → User (agente) → Customer (empresa)`. No hay relación entre llamadas y tickets.
+Cadena de pertenencia: `Interaction → User (agente) → Customer (empresa)`. Un ticket **puede** originarse en una llamada (`ticket.call_id` opcional), pero no toda llamada genera ticket.
 
 ## Diseño de escritura vs. lectura (clave)
 
@@ -129,7 +129,7 @@ Para métricas por empresa, se une `v_interaction.agent_id → user.customer_id`
 - `AgentAvailability (1) —— (N) User` → disponibilidad actual del agente (nullable).
 - `AgentAvailability (1) —— (N) AgentAvailabilityLog` y `User (1) —— (N) AgentAvailabilityLog` → historial de disponibilidad.
 - `Call` y `Ticket` → alimentan la vista `v_interaction` (solo lectura).
-- **No hay** relación `Call ↔ Ticket`.
+- `Call (1) —— (N) Ticket` → **opcional** (`ticket.call_id` nullable): un ticket puede originarse en una llamada (queja/observación del usuario), para que el admin la revise. No toda llamada genera ticket.
 
 ## Decisiones de modelo orientadas a la consulta
 

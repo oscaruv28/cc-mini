@@ -39,6 +39,7 @@ export default function Softphone({
   const [phase, setPhase] = useState<Phase>('ringing');
   const [seconds, setSeconds] = useState(0);
   const [dispId, setDispId] = useState('');
+  const [report, setReport] = useState('');
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const startRef = useRef<Date>(new Date());
@@ -60,6 +61,7 @@ export default function Softphone({
     setMsg(null);
     setSeconds(0);
     setDispId('');
+    setReport('');
     setPhase('ringing');
     startRef.current = new Date();
     setActive(c);
@@ -80,7 +82,19 @@ export default function Softphone({
       await interactionsApi.changeStatus('CALL', call.id, 'IN_PROGRESS');
       await interactionsApi.changeStatus('CALL', call.id, 'RESOLVED');
       await interactionsApi.tipify('CALL', call.id, dispId); // tipificación elegida en el wrap-up
-      setMsg(`Llamada con ${active.name} registrada (${mmss(dur)}).`);
+      let extra = '';
+      if (report.trim()) {
+        // Solo si hay algo que reportar: crea un ticket ligado a la llamada (para el admin).
+        await interactionsApi.createTicket({
+          agentId,
+          subject: `Reporte de llamada — ${active.name}`,
+          description: report.trim(),
+          priority: 'MEDIUM',
+          callId: call.id,
+        });
+        extra = ' + ticket creado';
+      }
+      setMsg(`Llamada con ${active.name} registrada (${mmss(dur)})${extra}.`);
       setActive(null);
       onRegistered();
     } catch (e) {
@@ -161,6 +175,18 @@ export default function Softphone({
                       <option key={d.id} value={d.id}>{d.label}</option>
                     ))}
                   </Select>
+                </div>
+                <div className="mt-3 text-left">
+                  <label className="mb-1 block text-sm font-medium text-slate-600">
+                    ¿Algo que reportar? <span className="font-normal text-slate-400">(opcional → crea un ticket)</span>
+                  </label>
+                  <textarea
+                    value={report}
+                    onChange={(e) => setReport(e.target.value)}
+                    rows={2}
+                    placeholder="Queja u observación del usuario durante la llamada…"
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                  />
                 </div>
                 <div className="mt-6 flex justify-center gap-3">
                   <button onClick={() => setActive(null)} className="rounded-full bg-slate-100 px-5 py-2 font-medium text-slate-600 hover:bg-slate-200">

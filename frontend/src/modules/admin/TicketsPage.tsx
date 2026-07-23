@@ -118,6 +118,16 @@ export default function TicketsPage() {
                 {detail.description || 'Sin descripción'}
               </p>
             </div>
+            {detail.call && (
+              <div className="mt-4">
+                <div className="text-sm text-slate-400">Llamada relacionada</div>
+                <div className="mt-1 rounded-lg border border-indigo-100 bg-indigo-50 p-3 text-sm text-slate-700">
+                  📞 {detail.call.phoneNumber ?? '—'} · {detail.call.direction ?? '—'} ·{' '}
+                  {detail.call.durationSec != null ? `${detail.call.durationSec}s` : '—'} ·{' '}
+                  {fmtDateTime(detail.call.openedAt ?? null)}
+                </div>
+              </div>
+            )}
             <div className="mt-5 text-right">
               <Button variant="ghost" onClick={() => setDetail(null)}>Cerrar</Button>
             </div>
