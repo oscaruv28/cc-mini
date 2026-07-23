@@ -49,10 +49,21 @@ cc-mini/
 - **domain** (entities + reglas): entidades MikroORM y reglas invariantes (p. ej. una interacción resuelta debe tener `closedAt`).
 - **infrastructure** (repositorios/config ORM): acceso a datos, migraciones, seed.
 
+**DTOs de respuesta (no se exponen entidades crudas):** cada endpoint devuelve un `*-response.dto.ts` construido con un **mapper puro** (`toCallResponse`, `toTicketResponse`), no la entidad de MikroORM. Así el contrato de la API está **desacoplado** del modelo de persistencia y no se filtran campos sensibles ni de más: el agente sale como `{ id, name }` (nunca `email`, `passwordHash` ni la empresa), y la llamada ligada de un ticket sale como un resumen acotado. Los resúmenes compartidos (`AgentSummaryDto`, `DispositionSummaryDto`) viven en `common/dto/`. El read model combinado (`v_interaction`) ya es una proyección lean, así que hace de DTO por sí mismo.
+
+### Módulos por dominio real + entidades co-localizadas (estilo vlesim-mailer)
+Inicialmente `Call` y `Ticket` compartían un único módulo `interactions` y las entidades vivían centralizadas en `entities/`. Se reorganizó tomando como referencia las buenas prácticas de **vlesim-mailer** (feature module = carpeta con su `*.entity.ts` co-localizada + controller/service/dto, más una **entidad base** que las demás extienden):
+
+- **`calls/` y `tickets/` son módulos propios y completos** (escritura, listado y detalle por tipo), cada uno con su entidad co-localizada. "Interacciones" no es un dominio: son llamadas y tickets, y así se ven en el código.
+- **`common/` es el kernel compartido:** la entidad base abstracta **`BaseInteraction`** (ciclo de vida común que `Call` y `Ticket` extienden), los enums compartidos (`InteractionStatus`, `InteractionType`), los DTOs comunes (`change-status`, `set-disposition`) y la máquina de estados pura. Los enums propios de un dominio viven junto a su módulo (`CallDirection`, `TicketPriority`, `UserRole`).
+- **`interactions/` queda como read model de solo lectura:** solo `GET /interactions` sobre la vista `v_interaction`, que alimenta el timeline combinado del frontend y las métricas. Ninguna escritura vive ahí.
+
+**Por qué:** un módulo por dominio real es más honesto y navegable; la entidad base evita duplicar el ciclo de vida; y separar lectura (vista) de escritura (módulos) mantiene el CQRS-lite. **Costo:** los nombres de clase/tabla no cambiaron, así que **no hubo migración** (`schema:update` confirma "up-to-date"); el frontend dividió su capa `api/` en `calls.api` + `tickets.api` y dejó `interactions.api` solo para el timeline + un dispatch por tipo.
+
 ### Arquitectura del frontend
 SPA en **React + Vite + TypeScript + Tailwind v4 + axios**, organizada por módulos y con separación clara de responsabilidades. Detalle en [docs/FRONTEND.md](./docs/FRONTEND.md).
 
-- **Capa de servicios / gateway (`src/api/`):** un **único cliente axios** (`client.ts`) con `baseURL` por variable de entorno, inyección automática del **Bearer** y manejo central de **401 → logout**. Encima, un **servicio por dominio** (`auth`, `interactions`, `users`, `metrics`, `catalog`). Los componentes **no llaman axios directo** — siempre pasan por estos servicios. Beneficio: un solo lugar para auth, errores y base URL; fácil de testear y de cambiar.
+- **Capa de servicios / gateway (`src/api/`):** un **único cliente axios** (`client.ts`) con `baseURL` por variable de entorno, inyección automática del **Bearer** y manejo central de **401 → logout**. Encima, un **servicio por dominio** (`auth`, `calls`, `tickets`, `interactions`, `users`, `metrics`, `catalog`). Los componentes **no llaman axios directo** — siempre pasan por estos servicios. Beneficio: un solo lugar para auth, errores y base URL; fácil de testear y de cambiar.
 - **Ruteo (`react-router-dom`) con rutas anidadas y `Outlet`:** una *layout route* (`Protected`) valida la sesión y renderiza `AppLayout`, que contiene el `<Outlet/>` donde se pintan las páginas hijas (comparten header/nav sin repetirlo). Redirecciones con `Navigate`, navegación con `NavLink`.
 - **Guards por rol:** `Protected` (exige sesión) y `RequireRole` (exige `ADMIN`) protegen las rutas; `HomeRedirect` enruta a `/dashboard` (admin) o `/agent` (agente) según el rol. Es un **portal por rol**.
 - **Hooks (`src/hooks/`):** `useAuth` (contexto de sesión: login/logout, token+usuario en `localStorage`) y `useAsync` (envuelve cada consumo con estados de **carga** y **error** explícitos, exigidos por el enunciado).
@@ -131,7 +142,7 @@ Usé un asistente de IA para acelerar scaffolding, boilerplate (DTOs, módulos, 
 ## 6. Qué haría distinto / alcances futuros
 
 ### Evolución de arquitectura (hoy: monolito modular)
-Hoy el backend es un **monolito modular**: un solo servicio NestJS con módulos que separan responsabilidades (`auth`, `users`, `interactions`, `metrics`, `catalog`), entidades centralizadas y capas api/service/domain. Para el alcance de la prueba es la **decisión correcta**: máxima claridad y cero fricción operativa (el enunciado premia lo acotado). Meter microservicios aquí sería sobre-ingeniería.
+Hoy el backend es un **monolito modular**: un solo servicio NestJS con un módulo por dominio (`auth`, `users`, `catalog`, `calls`, `tickets`, `metrics` + `interactions` como read model de lectura), entidades co-localizadas en su módulo, kernel compartido en `common/`, y capas api/service/domain. Para el alcance de la prueba es la **decisión correcta**: máxima claridad y cero fricción operativa (el enunciado premia lo acotado). Meter microservicios aquí sería sobre-ingeniería.
 
 Con **más escala o equipos**, evolucionaría a servicios detrás de un **API Gateway**:
 - **API Gateway** — punto único de entrada: controla tráfico (rate limiting), enrutamiento, y **centraliza la verificación del JWT** (el criterio de acceso vive ahí, no repartido). Actúa de puente hacia los servicios.
@@ -144,7 +155,7 @@ Con **más escala o equipos**, evolucionaría a servicios detrás de un **API Ga
 ### Otras mejoras
 - **Autorización por rol (RBAC)** y **refresh tokens** (hoy hay autenticación + aislamiento por empresa, pero no control de acceso por rol en el backend).
 - **`AgentAvailabilityLog`** + métricas de ocupación/adherencia por franja (quedó modelado, no construido).
-- **DTOs de respuesta / serialización** explícita (no exponer entidades crudas) y **paginación por cursor** para listados grandes.
+- **Paginación por cursor** para listados muy grandes (hoy es offset/limit, suficiente para el alcance).
 - **Escala de datos:** índices/particionado por fecha si el volumen crece a millones; pipeline de **CI**.
 - **Observabilidad** (logs estructurados, métricas de app), **rate limiting**, y **secretos** gestionados (fuera del `docker-compose`).
 - **Frontend:** React Query (cache/invalidación) y manejo de expiración de token.

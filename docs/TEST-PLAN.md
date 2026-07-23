@@ -53,8 +53,9 @@ Credenciales: `admin@demo.co` / `admin123` (ADMIN) · `agente@demo.co` / `agente
 
 ## 8. Endpoints por API (Swagger)
 23. Abre `/api/docs`, pulsa **Authorize**, pega el token del login y prueba:
-    - `POST /interactions/calls/simulate`, `PATCH .../status`, `PATCH .../disposition`
-    - `GET /metrics?from&to`, `GET /interactions?...`
+    - `POST /calls/simulate`, `PATCH /calls/:id/status`, `PATCH /calls/:id/disposition`
+    - `POST /tickets`, `PATCH /tickets/:id/status`; `GET /calls`, `GET /tickets`
+    - `GET /metrics?from&to`, `GET /interactions?...` (timeline combinado)
     - `GET /roles`, `/customers`, `/dispositions`, `/agent-availabilities`
     - CRUD `/users` (+ `/:id/availability`)
 

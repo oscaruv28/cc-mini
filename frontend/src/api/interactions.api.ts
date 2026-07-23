@@ -1,11 +1,7 @@
 import { api } from './client';
-import type {
-  InteractionRow,
-  InteractionStatus,
-  InteractionType,
-  Paginated,
-  TicketDetail,
-} from '../types';
+import { callsApi } from './calls.api';
+import { ticketsApi } from './tickets.api';
+import type { InteractionRow, InteractionStatus, InteractionType, Paginated } from '../types';
 
 export interface InteractionFilters {
   agentId?: string;
@@ -17,48 +13,20 @@ export interface InteractionFilters {
   limit?: number;
 }
 
+/**
+ * Read model unificado (solo lectura): el timeline combinado de llamadas + tickets
+ * lo sirve GET /interactions. Las mutaciones NO viven aquí: se despachan al módulo
+ * correspondiente (`callsApi` / `ticketsApi`) según el tipo de la fila.
+ */
 export const interactionsApi = {
-  getTicket: (id: string) =>
-    api.get<TicketDetail>(`/interactions/tickets/${id}`).then((r) => r.data),
-
   list: (filters: InteractionFilters) =>
     api
       .get<Paginated<InteractionRow>>('/interactions', { params: filters })
       .then((r) => r.data),
 
-  createCall: (body: {
-    agentId: string;
-    direction: string;
-    phoneNumber?: string;
-    durationSec?: number;
-    openedAt?: string;
-  }) => api.post<{ id: string }>('/interactions/calls', body).then((r) => r.data),
-
-  simulate: (agentId: string, count: number) =>
-    api
-      .post<{ created: number; ids: string[] }>('/interactions/calls/simulate', {
-        agentId,
-        count,
-      })
-      .then((r) => r.data),
-
-  createTicket: (body: {
-    agentId: string;
-    subject: string;
-    description?: string;
-    priority?: string;
-    callId?: string;
-  }) => api.post('/interactions/tickets', body).then((r) => r.data),
-
   changeStatus: (type: InteractionType, id: string, status: InteractionStatus) =>
-    api
-      .patch(`/interactions/${type === 'CALL' ? 'calls' : 'tickets'}/${id}/status`, { status })
-      .then((r) => r.data),
+    type === 'CALL' ? callsApi.changeStatus(id, status) : ticketsApi.changeStatus(id, status),
 
   tipify: (type: InteractionType, id: string, dispositionId: string) =>
-    api
-      .patch(`/interactions/${type === 'CALL' ? 'calls' : 'tickets'}/${id}/disposition`, {
-        dispositionId,
-      })
-      .then((r) => r.data),
+    type === 'CALL' ? callsApi.tipify(id, dispositionId) : ticketsApi.tipify(id, dispositionId),
 };

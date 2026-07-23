@@ -1,5 +1,5 @@
 import { Collection, Entity, OneToMany, PrimaryKey, Property } from '@mikro-orm/core';
-import { User } from './user.entity';
+import { User } from '../users/user.entity';
 
 /** Empresa cliente de WeKall (el "tenant") que usa el contact center. */
 @Entity()

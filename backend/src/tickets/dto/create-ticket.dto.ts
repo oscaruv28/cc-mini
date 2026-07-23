@@ -7,7 +7,7 @@ import {
   IsString,
   IsUUID,
 } from 'class-validator';
-import { TicketPriority } from '../../entities/enums';
+import { TicketPriority } from '../ticket.types';
 
 export class CreateTicketDto {
   @ApiProperty({ format: 'uuid', description: 'Agente asignado (User con rol AGENT)' })

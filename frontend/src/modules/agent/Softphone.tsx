@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { interactionsApi } from '../../api/interactions.api';
+import { callsApi } from '../../api/calls.api';
+import { ticketsApi } from '../../api/tickets.api';
 import { apiError } from '../../api/client';
 import { Card, Select } from '../../components/ui';
 import type { Disposition } from '../../types';
@@ -40,6 +41,7 @@ export default function Softphone({
   const [seconds, setSeconds] = useState(0);
   const [dispId, setDispId] = useState('');
   const [report, setReport] = useState('');
+  const [showTicket, setShowTicket] = useState(false);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const startRef = useRef<Date>(new Date());
@@ -62,6 +64,7 @@ export default function Softphone({
     setSeconds(0);
     setDispId('');
     setReport('');
+    setShowTicket(false);
     setPhase('ringing');
     startRef.current = new Date();
     setActive(c);
@@ -72,20 +75,20 @@ export default function Softphone({
     setSaving(true);
     try {
       const dur = Math.max(seconds, 1);
-      const call = await interactionsApi.createCall({
+      const call = await callsApi.create({
         agentId,
         direction: 'OUTBOUND',
         phoneNumber: active.phone,
         durationSec: dur,
         openedAt: startRef.current.toISOString(),
       });
-      await interactionsApi.changeStatus('CALL', call.id, 'IN_PROGRESS');
-      await interactionsApi.changeStatus('CALL', call.id, 'RESOLVED');
-      await interactionsApi.tipify('CALL', call.id, dispId); // tipificación elegida en el wrap-up
+      await callsApi.changeStatus(call.id, 'IN_PROGRESS');
+      await callsApi.changeStatus(call.id, 'RESOLVED');
+      await callsApi.tipify(call.id, dispId); // tipificación elegida en el wrap-up
       let extra = '';
-      if (report.trim()) {
-        // Solo si hay algo que reportar: crea un ticket ligado a la llamada (para el admin).
-        await interactionsApi.createTicket({
+      if (showTicket && report.trim()) {
+        // Solo si el agente abrió el reporte y escribió algo: crea un ticket ligado a la llamada.
+        await ticketsApi.create({
           agentId,
           subject: `Reporte de llamada — ${active.name}`,
           description: report.trim(),
@@ -177,16 +180,36 @@ export default function Softphone({
                   </Select>
                 </div>
                 <div className="mt-3 text-left">
-                  <label className="mb-1 block text-sm font-medium text-slate-600">
-                    ¿Algo que reportar? <span className="font-normal text-slate-400">(opcional → crea un ticket)</span>
-                  </label>
-                  <textarea
-                    value={report}
-                    onChange={(e) => setReport(e.target.value)}
-                    rows={2}
-                    placeholder="Queja u observación del usuario durante la llamada…"
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
-                  />
+                  {!showTicket ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowTicket(true)}
+                      className="flex w-full items-center justify-center gap-2 rounded-md border border-dashed border-indigo-300 px-3 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50"
+                    >
+                      <span className="text-base leading-none">＋</span> Crear ticket de esta llamada
+                    </button>
+                  ) : (
+                    <>
+                      <div className="mb-1 flex items-center justify-between">
+                        <label className="block text-sm font-medium text-slate-600">Descripción de la incidencia</label>
+                        <button
+                          type="button"
+                          onClick={() => { setShowTicket(false); setReport(''); }}
+                          className="text-xs font-medium text-slate-400 hover:text-slate-600"
+                        >
+                          Quitar ticket
+                        </button>
+                      </div>
+                      <textarea
+                        value={report}
+                        onChange={(e) => setReport(e.target.value)}
+                        rows={2}
+                        autoFocus
+                        placeholder="Queja u observación del usuario durante la llamada…"
+                        className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                      />
+                    </>
+                  )}
                 </div>
                 <div className="mt-6 flex justify-center gap-3">
                   <button onClick={() => setActive(null)} className="rounded-full bg-slate-100 px-5 py-2 font-medium text-slate-600 hover:bg-slate-200">
@@ -197,7 +220,11 @@ export default function Softphone({
                     disabled={!dispId || saving}
                     className="rounded-full bg-indigo-600 px-6 py-2 font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
                   >
-                    {saving ? 'Guardando…' : 'Guardar llamada'}
+                    {saving
+                      ? 'Guardando…'
+                      : showTicket && report.trim()
+                        ? 'Guardar llamada + ticket'
+                        : 'Guardar llamada'}
                   </button>
                 </div>
               </>

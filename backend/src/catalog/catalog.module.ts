@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
-import { Customer } from '../entities/customer.entity';
-import { Disposition } from '../entities/disposition.entity';
-import { AgentAvailability } from '../entities/agent-availability.entity';
+import { Customer } from './customer.entity';
+import { Disposition } from './disposition.entity';
+import { AgentAvailability } from './agent-availability.entity';
 import { CatalogService } from './catalog.service';
 import { CatalogController } from './catalog.controller';
 

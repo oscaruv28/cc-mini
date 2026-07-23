@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
-import { UserRole } from '../../entities/enums';
+import { UserRole } from '../user.types';
 
 /** Actualiza datos editables. El email no se cambia (identidad de login). */
 export class UpdateUserDto {

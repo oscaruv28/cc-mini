@@ -51,17 +51,22 @@ Docker (Dockerfile por componente) · docker-compose · nginx (estáticos + prox
 
 ```
 backend/src/
-├── entities/            # entidades MikroORM + enums (dominio, compartidas por módulos)
-│   ├── customer, user, call, ticket, disposition, agent-availability
-│   ├── base-interaction (abstracta), interaction-view (vista de lectura), enums
-├── auth/                # login JWT, jwt-auth.guard (global), current-user.decorator, dto
-├── users/               # CRUD de usuarios (controller / service / dto)
-├── interactions/        # crear/estados/listar/simular/tipificar/detalle
-│   └── interaction-status.ts   # lógica pura (máquina de estados) → unit-testeable
-├── metrics/             # endpoint de métricas
+├── calls/               # MÓDULO Llamadas: entity + controller/service/dto (crear/simular/estado/tipificar/listar/detalle)
+│   ├── call.entity.ts (extiende BaseInteraction) · call.types.ts (CallDirection)
+├── tickets/             # MÓDULO Tickets: entity + controller/service/dto (crear/estado/tipificar/listar/detalle)
+│   ├── ticket.entity.ts (extiende BaseInteraction) · ticket.types.ts (TicketPriority)
+├── interactions/        # READ MODEL (solo lectura): timeline combinado GET /interactions
+│   └── interaction-view.entity.ts   # vista v_interaction (llamadas + tickets)
+├── auth/                # login JWT · guards/ (jwt-auth.guard global) · decorators/ (@Public, @CurrentUser) · dto/
+├── users/               # CRUD de usuarios · user.entity.ts · user.types.ts (UserRole)
+├── catalog/             # roles, customers, dispositions, agent-availabilities (+ sus entities)
+├── metrics/             # endpoint de métricas (lee v_interaction)
 │   └── metrics.mapper.ts       # lógica pura (cálculo por agente) → unit-testeable
-├── catalog/             # roles, customers, dispositions, agent-availabilities
-├── common/              # transversal
+├── common/              # KERNEL transversal compartido
+│   ├── entities/base-interaction.entity.ts  # base abstracta que Call y Ticket extienden
+│   ├── enums.ts                 # enums compartidos (InteractionStatus, InteractionType)
+│   ├── domain/interaction-status.ts  # lógica pura (máquina de estados) → unit-testeable
+│   ├── dto/                     # DTOs compartidos (change-status, set-disposition)
 │   └── filters/all-exceptions.filter.ts   # filtro global de errores
 ├── migrations/          # migraciones MikroORM
 ├── seeders/             # DatabaseSeeder (bulk), DemoSeeder (catálogos + usuarios)
@@ -74,8 +79,9 @@ backend/src/
 - `*.controller.ts` → entrada/salida HTTP, validación de DTOs, paginación. **Sin lógica de negocio.**
 - `*.service.ts` → la lógica (transiciones, agregación, reglas).
 - `dto/` → contratos de entrada/salida con `class-validator`.
-- **Entidades centralizadas** en `entities/` porque las comparten varios módulos.
-- **Lógica pura extraída** (`interaction-status`, `metrics.mapper`) para testearla sin BD.
+- **Entidad co-localizada** con su módulo dueño (`call.entity` en `calls/`, `ticket.entity` en `tickets/`, etc.), estilo vlesim-mailer. Lo genuinamente compartido vive en `common/` (entidad base `BaseInteraction`, enums, DTOs, máquina de estados).
+- **Read model unificado** (`v_interaction`) en `interactions/` (solo lectura): alimenta el timeline combinado y las métricas sin unir tablas en cada consulta.
+- **Lógica pura extraída** (`common/domain/interaction-status`, `metrics.mapper`) para testearla sin BD.
 
 ---
 
@@ -84,7 +90,7 @@ backend/src/
 ```
 frontend/src/
 ├── api/            # GATEWAY: client.ts (axios + Bearer + 401) + un servicio por dominio
-│                   #   auth.api, interactions.api, users.api, metrics.api, catalog.api
+│                   #   auth.api, calls.api, tickets.api, interactions.api, users.api, metrics.api, catalog.api
 ├── hooks/          # useAuth (sesión/Context), useAsync (carga/error/reload)
 ├── components/     # UI reutilizable (ui.tsx), AppLayout (con <Outlet/>), InteractionsPanel
 ├── modules/

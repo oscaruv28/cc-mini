@@ -14,7 +14,9 @@ frontend/src/
 ├── api/                # GATEWAY: un solo cliente axios + endpoints por dominio
 │   ├── client.ts       # instancia axios: baseURL, inyecta Bearer, maneja 401
 │   ├── auth.api.ts     # login
-│   ├── interactions.api.ts
+│   ├── calls.api.ts    # llamadas
+│   ├── tickets.api.ts  # tickets
+│   ├── interactions.api.ts  # timeline combinado (list) + dispatch por tipo
 │   ├── users.api.ts
 │   ├── metrics.api.ts
 │   └── catalog.api.ts  # roles, customers, dispositions, agent-availabilities

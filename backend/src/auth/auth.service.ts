@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { EntityManager } from '@mikro-orm/postgresql';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
-import { User } from '../entities/user.entity';
+import { User } from '../users/user.entity';
 import { LoginDto } from './dto/login.dto';
 
 @Injectable()

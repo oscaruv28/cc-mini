@@ -7,10 +7,10 @@ import {
 import { EntityManager } from '@mikro-orm/postgresql';
 import type { FilterQuery } from '@mikro-orm/core';
 import * as bcrypt from 'bcryptjs';
-import { User } from '../entities/user.entity';
-import { Customer } from '../entities/customer.entity';
-import { AgentAvailability } from '../entities/agent-availability.entity';
-import { UserRole } from '../entities/enums';
+import { User } from './user.entity';
+import { Customer } from '../catalog/customer.entity';
+import { AgentAvailability } from '../catalog/agent-availability.entity';
+import { UserRole } from './user.types';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ListUsersQueryDto } from './dto/list-users-query.dto';

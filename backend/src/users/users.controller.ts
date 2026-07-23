@@ -16,7 +16,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ListUsersQueryDto } from './dto/list-users-query.dto';
 import { SetAvailabilityDto } from './dto/set-availability.dto';
-import { CurrentUser, type JwtUser } from '../auth/current-user.decorator';
+import { CurrentUser, type JwtUser } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('users')
 @ApiBearerAuth()

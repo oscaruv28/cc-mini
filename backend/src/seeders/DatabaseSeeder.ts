@@ -1,12 +1,15 @@
 import type { EntityManager } from '@mikro-orm/core';
 import { Seeder } from '@mikro-orm/seeder';
 import * as bcrypt from 'bcryptjs';
-import { Customer } from '../entities/customer.entity';
-import { User } from '../entities/user.entity';
-import { Disposition } from '../entities/disposition.entity';
-import { Call } from '../entities/call.entity';
-import { Ticket } from '../entities/ticket.entity';
-import { CallDirection, InteractionStatus, TicketPriority, UserRole } from '../entities/enums';
+import { Customer } from '../catalog/customer.entity';
+import { User } from '../users/user.entity';
+import { Disposition } from '../catalog/disposition.entity';
+import { Call } from '../calls/call.entity';
+import { Ticket } from '../tickets/ticket.entity';
+import { InteractionStatus } from '../common/enums';
+import { CallDirection } from '../calls/call.types';
+import { TicketPriority } from '../tickets/ticket.types';
+import { UserRole } from '../users/user.types';
 import { DemoSeeder } from './DemoSeeder';
 
 /** Casos realistas (con tildes) para las descripciones de los tickets. */

@@ -1,17 +1,12 @@
 import { Module } from '@nestjs/common';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
-import { Call } from '../entities/call.entity';
-import { Ticket } from '../entities/ticket.entity';
-import { User } from '../entities/user.entity';
-import { Disposition } from '../entities/disposition.entity';
-import { InteractionView } from '../entities/interaction-view.entity';
+import { InteractionView } from './interaction-view.entity';
 import { InteractionsService } from './interactions.service';
 import { InteractionsController } from './interactions.controller';
 
+/** Read model unificado (solo lectura) del timeline de interacciones. */
 @Module({
-  imports: [
-    MikroOrmModule.forFeature([Call, Ticket, User, Disposition, InteractionView]),
-  ],
+  imports: [MikroOrmModule.forFeature([InteractionView])],
   controllers: [InteractionsController],
   providers: [InteractionsService],
 })

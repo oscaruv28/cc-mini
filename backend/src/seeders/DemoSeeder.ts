@@ -1,11 +1,11 @@
 import type { EntityManager } from '@mikro-orm/core';
 import { Seeder } from '@mikro-orm/seeder';
 import * as bcrypt from 'bcryptjs';
-import { Customer } from '../entities/customer.entity';
-import { User } from '../entities/user.entity';
-import { Disposition } from '../entities/disposition.entity';
-import { AgentAvailability } from '../entities/agent-availability.entity';
-import { UserRole } from '../entities/enums';
+import { Customer } from '../catalog/customer.entity';
+import { User } from '../users/user.entity';
+import { Disposition } from '../catalog/disposition.entity';
+import { AgentAvailability } from '../catalog/agent-availability.entity';
+import { UserRole } from '../users/user.types';
 
 const DISPOSITIONS = [
   ['RESUELTO', 'Resuelto'],

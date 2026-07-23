@@ -12,8 +12,8 @@ la **decisión y el porqué**, no desde el "hice X".
 ---
 
 ## Arquitectura (25%)
-- "Organicé **por responsabilidad**, no por tabla: un **módulo por dominio** (`interactions`, `metrics`, `auth`, `users`, `catalog`), cada uno con `controller` (API) / `service` (lógica) / `dto` (validación); entidades centralizadas."
-- "Separé **escritura y lectura**: dos entidades `Call`/`Ticket` (dominio realista) + una **vista `v_interaction`** que leen las métricas → un solo `GROUP BY`, sin duplicar lógica. Es CQRS-lite."
+- "Organicé **un módulo por dominio real** (`calls`, `tickets`, `users`, `catalog`, `metrics`), cada uno con su `controller` / `service` / `dto` y su **entidad co-localizada** (estilo vlesim-mailer). Lo genuinamente compartido vive en `common/`: la **entidad base `BaseInteraction`** que `Call` y `Ticket` extienden, los enums, los DTOs comunes y la máquina de estados."
+- "Separé **escritura y lectura**: `calls` y `tickets` escriben en sus tablas; una **vista `v_interaction`** (módulo `interactions`, solo lectura) alimenta el timeline combinado y las métricas → un solo `GROUP BY`, sin duplicar lógica. Es CQRS-lite."
 - "Elegí **monolito modular a propósito** (el enunciado premia lo acotado). Documenté la evolución a **API Gateway + servicios**, y como cada módulo ya es candidato a servicio, esa migración sería incremental."
 
 ## Calidad de código (20%)
@@ -44,7 +44,7 @@ la **decisión y el porqué**, no desde el "hice X".
 
 ## Preguntas trampa (y respuestas)
 - **¿Por qué no microservicios / API Gateway?** → Sería sobre-ingeniería para el alcance; el monolito modular es lo correcto. La evolución está documentada y el diseño está listo para migrar por módulos.
-- **¿Por qué carpeta por módulo y no por entidad?** → Organicé por **caso de uso**: `Call` y `Ticket` comparten ciclo de vida (viven en `interactions`), y `metrics` no tiene entidad propia (lee una vista). Una carpeta por tabla partiría cosas que van juntas.
+- **¿Por qué `calls` y `tickets` separados si comparten ciclo de vida?** → Son dominios distintos (una llamada no es un ticket), así que cada uno es su módulo con entidad co-localizada. Lo común no se duplica: se sube a `common/` (entidad base `BaseInteraction`, enums, máquina de estados). El listado combinado y las métricas leen una **vista** (`interactions`, solo lectura), no un módulo que mezcle la escritura de ambos.
 - **¿Cómo garantizas eficiencia con muchos registros?** → Agregación en SQL + índices; verificado con ~5k registros comparando API vs BD.
 - **¿Y la zona horaria?** → En el motor con `AT TIME ZONE`; probada con la frontera de medianoche.
 - **¿Los extras (auth, softphone, multi-empresa) no son sobre-alcance?** → Son **extras conscientes**; el núcleo está completo y priorizado. Los marqué como decisión, no como dispersión.

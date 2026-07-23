@@ -1,17 +1,10 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import {
-  IsDateString,
-  IsEnum,
-  IsInt,
-  IsOptional,
-  IsUUID,
-  Max,
-  Min,
-} from 'class-validator';
-import { InteractionStatus, InteractionType } from '../../common/enums';
+import { IsDateString, IsEnum, IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
+import { InteractionStatus } from '../../common/enums';
 
-export class ListInteractionsQueryDto {
+/** Filtros del listado de llamadas (el tipo es implícito: siempre CALL). */
+export class ListCallsQueryDto {
   @ApiPropertyOptional({ format: 'uuid' })
   @IsOptional()
   @IsUUID()
@@ -21,11 +14,6 @@ export class ListInteractionsQueryDto {
   @IsOptional()
   @IsEnum(InteractionStatus)
   status?: InteractionStatus;
-
-  @ApiPropertyOptional({ enum: InteractionType })
-  @IsOptional()
-  @IsEnum(InteractionType)
-  type?: InteractionType;
 
   @ApiPropertyOptional({ description: 'Rango: desde (ISO 8601)' })
   @IsOptional()

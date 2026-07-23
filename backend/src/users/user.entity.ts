@@ -1,12 +1,11 @@
 import { Entity, Enum, ManyToOne, PrimaryKey, Property } from '@mikro-orm/core';
-import { UserRole } from './enums';
-import { Customer } from './customer.entity';
-import { AgentAvailability } from './agent-availability.entity';
+import { UserRole } from './user.types';
+import { Customer } from '../catalog/customer.entity';
+import { AgentAvailability } from '../catalog/agent-availability.entity';
 
 /**
  * Miembro del equipo de soporte de una empresa (`Customer`).
  * ADMIN revisa métricas; AGENT atiende/crea interacciones.
- * (La disponibilidad del agente — AgentAvailability — se agrega en Etapa 7.)
  */
 @Entity()
 export class User {

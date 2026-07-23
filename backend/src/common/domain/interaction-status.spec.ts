@@ -1,4 +1,4 @@
-import { InteractionStatus } from '../entities/enums';
+import { InteractionStatus } from '../enums';
 import { canTransition } from './interaction-status';
 
 describe('máquina de estados de interacción', () => {

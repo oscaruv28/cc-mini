@@ -1,7 +1,7 @@
 import { Entity, Enum, Index, ManyToOne, Property } from '@mikro-orm/core';
-import { BaseInteraction } from './base-interaction.entity';
-import { Call } from './call.entity';
-import { TicketPriority } from './enums';
+import { BaseInteraction } from '../common/entities/base-interaction.entity';
+import { Call } from '../calls/call.entity';
+import { TicketPriority } from './ticket.types';
 
 /** Ticket (petición/incidencia). Comparte ciclo de vida con Call vía BaseInteraction. */
 @Entity()

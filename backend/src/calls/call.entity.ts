@@ -1,6 +1,6 @@
 import { Entity, Enum, Index, Property } from '@mikro-orm/core';
-import { BaseInteraction } from './base-interaction.entity';
-import { CallDirection } from './enums';
+import { BaseInteraction } from '../common/entities/base-interaction.entity';
+import { CallDirection } from './call.types';
 
 /** Llamada. Comparte ciclo de vida con Ticket vía BaseInteraction. */
 @Entity()

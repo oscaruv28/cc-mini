@@ -6,9 +6,11 @@ import { MikroOrmModule } from '@mikro-orm/nestjs';
 import mikroOrmConfig from './mikro-orm.config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { CallsModule } from './calls/calls.module';
+import { TicketsModule } from './tickets/tickets.module';
 import { InteractionsModule } from './interactions/interactions.module';
 import { AuthModule } from './auth/auth.module';
-import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { UsersModule } from './users/users.module';
 import { CatalogModule } from './catalog/catalog.module';
@@ -26,9 +28,11 @@ import { MetricsModule } from './metrics/metrics.module';
     AuthModule,
     UsersModule,
     CatalogModule,
+    CallsModule,
+    TicketsModule,
+    // Timeline combinado (solo lectura) sobre la vista v_interaction.
     InteractionsModule,
     MetricsModule,
-    // El módulo de métricas se registra en la Etapa 3.
   ],
   controllers: [AppController],
   providers: [

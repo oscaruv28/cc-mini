@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useAsync } from '../../hooks/useAsync';
 import { usersApi } from '../../api/users.api';
 import { catalogApi } from '../../api/catalog.api';
-import { interactionsApi } from '../../api/interactions.api';
+import { ticketsApi } from '../../api/tickets.api';
 import { apiError } from '../../api/client';
 import { Badge, Button, Card, ErrorState, Field, Input, Select, Spinner } from '../../components/ui';
 import InteractionsPanel from '../../components/InteractionsPanel';
@@ -29,7 +29,7 @@ export default function TicketsPage() {
   const openDetail = async (id: string) => {
     setDetailErr(null);
     try {
-      setDetail(await interactionsApi.getTicket(id));
+      setDetail(await ticketsApi.get(id));
     } catch (e) {
       setDetailErr(apiError(e));
     }
@@ -45,7 +45,7 @@ export default function TicketsPage() {
     setBusy(true);
     setFormError(null);
     try {
-      await interactionsApi.createTicket(form);
+      await ticketsApi.create(form);
       setForm({ agentId: '', subject: '', description: '', priority: 'MEDIUM' });
       setReloadKey((k) => k + 1);
     } catch (err) {

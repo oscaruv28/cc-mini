@@ -8,7 +8,7 @@ import {
   IsString,
   IsUUID,
 } from 'class-validator';
-import { CallDirection } from '../../entities/enums';
+import { CallDirection } from '../call.types';
 
 export class CreateCallDto {
   @ApiProperty({ format: 'uuid', description: 'Agente asignado (User con rol AGENT)' })

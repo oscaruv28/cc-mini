@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
-import { UserRole } from '../../entities/enums';
+import { UserRole } from '../user.types';
 
 export class ListUsersQueryDto {
   @ApiPropertyOptional({ enum: UserRole })

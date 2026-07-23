@@ -74,11 +74,12 @@ npm run dev               # SPA en http://localhost:5173
 | POST | `/api/auth/login` | Login → JWT |
 | GET | `/api/health` | Estado del servicio (público) |
 | GET/POST/PATCH/DELETE | `/api/users` | CRUD de usuarios (+ `/:id/availability`) |
-| POST | `/api/interactions/{calls,tickets}` | Crear interacción |
-| POST | `/api/interactions/calls/simulate` | Generar llamadas aleatorias coherentes |
-| PATCH | `/api/interactions/{calls,tickets}/:id/status` | Cambiar estado |
-| PATCH | `/api/interactions/{calls,tickets}/:id/disposition` | Tipificar |
-| GET | `/api/interactions` | Listar (filtros + paginación) |
+| POST | `/api/calls`, `/api/tickets` | Crear llamada / ticket |
+| POST | `/api/calls/simulate` | Generar llamadas aleatorias coherentes |
+| PATCH | `/api/calls/:id/status`, `/api/tickets/:id/status` | Cambiar estado |
+| PATCH | `/api/calls/:id/disposition`, `/api/tickets/:id/disposition` | Tipificar |
+| GET | `/api/calls`, `/api/tickets`, `/api/calls/:id`, `/api/tickets/:id` | Listar / detalle por tipo |
+| GET | `/api/interactions` | Timeline combinado (llamadas + tickets, solo lectura) |
 | GET | `/api/metrics?from&to[&agentId]` | Métricas por agente + volumen por día |
 | GET | `/api/roles`, `/customers`, `/dispositions`, `/agent-availabilities` | Catálogos |
 

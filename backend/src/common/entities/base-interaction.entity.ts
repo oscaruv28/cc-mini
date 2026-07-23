@@ -1,7 +1,7 @@
 import { Entity, Enum, ManyToOne, PrimaryKey, Property } from '@mikro-orm/core';
-import { InteractionStatus } from './enums';
-import { User } from './user.entity';
-import { Disposition } from './disposition.entity';
+import { InteractionStatus } from '../enums';
+import { User } from '../../users/user.entity';
+import { Disposition } from '../../catalog/disposition.entity';
 
 /**
  * Clase base abstracta: reúne los campos de ciclo de vida comunes a `Call` y

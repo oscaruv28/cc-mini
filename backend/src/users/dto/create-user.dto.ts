@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsEnum, IsNotEmpty, IsString, MinLength } from 'class-validator';
-import { UserRole } from '../../entities/enums';
+import { UserRole } from '../user.types';
 
 // La empresa (customerId) se toma del token, no del body: un admin solo crea
 // usuarios dentro de su propia organización.

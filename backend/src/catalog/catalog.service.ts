@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { EntityManager } from '@mikro-orm/postgresql';
-import { Customer } from '../entities/customer.entity';
-import { Disposition } from '../entities/disposition.entity';
-import { AgentAvailability } from '../entities/agent-availability.entity';
-import { UserRole } from '../entities/enums';
+import { Customer } from './customer.entity';
+import { Disposition } from './disposition.entity';
+import { AgentAvailability } from './agent-availability.entity';
+import { UserRole } from '../users/user.types';
 
 @Injectable()
 export class CatalogService {
