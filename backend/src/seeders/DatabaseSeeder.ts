@@ -9,6 +9,17 @@ import { Ticket } from '../entities/ticket.entity';
 import { CallDirection, InteractionStatus, TicketPriority, UserRole } from '../entities/enums';
 import { DemoSeeder } from './DemoSeeder';
 
+/** Casos realistas (con tildes) para las descripciones de los tickets. */
+const TICKET_CASES: [string, string][] = [
+  ['No puedo iniciar sesión', 'El cliente no logra ingresar; la cuenta figura bloqueada tras varios intentos fallidos. Se solicitó el reseteo de contraseña.'],
+  ['Cobro duplicado', 'El usuario reporta un doble cargo en la factura del mes. Se confirmó el cobro y se escaló al área de facturación para la reversa.'],
+  ['La aplicación se cierra sola', 'La app se cierra al abrir la sección de pagos. Se pidió la versión de la aplicación y el modelo del teléfono para reproducir el error.'],
+  ['Demora en la atención', 'El cliente se quejó por el tiempo de espera en la línea antes de ser atendido. Se registró la observación para el área de calidad.'],
+  ['Solicitud de información', 'El usuario pidió detalles sobre los planes disponibles y sus beneficios. Se le explicaron las opciones y quedó conforme.'],
+  ['Error al actualizar datos', 'Al intentar actualizar su dirección, el sistema muestra un error. Se registró el caso para revisión técnica.'],
+  ['Reclamo por facturación', 'El cliente indica que el valor cobrado no corresponde con su plan. Se está validando con el histórico de consumo.'],
+];
+
 const pick = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 const randInt = (min: number, max: number) => min + Math.floor(Math.random() * (max - min + 1));
 /** Fecha aleatoria en los últimos 14 días (cualquier hora → cruza medianoche). */
@@ -75,10 +86,11 @@ export class DatabaseSeeder extends Seeder {
       const opened = randomOpened();
       const status = rollStatus();
       const dur = randInt(120, 3600);
+      const [subject, description] = pick(TICKET_CASES);
       em.create(Ticket, {
         agent: pick(agents),
-        subject: `Ticket #${i + 1}`,
-        description: 'Incidencia generada por el seed',
+        subject,
+        description,
         priority: pick(priorities),
         channel: pick(channels),
         status,
