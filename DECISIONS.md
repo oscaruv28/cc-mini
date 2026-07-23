@@ -9,6 +9,8 @@
 
 ## 1. Arquitectura general
 
+> Referencia detallada (componentes Docker, tecnologías, estructura de carpetas del back y del front, y manejo de errores): [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md).
+
 ### Repositorio: monorepo con separación de capas
 Un solo repositorio con dos aplicaciones desplegables por separado (`backend/` y `frontend/`).
 
