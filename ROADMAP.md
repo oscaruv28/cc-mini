@@ -1,93 +1,79 @@
-# ROADMAP.md — Plan por partes
+# ROADMAP.md — plan por fases
 
-> Documento vivo. Refleja el estado real. Leyenda: ✅ hecho · 🔄 en curso · ⏳ pendiente
-
-El proyecto tiene tres partes: **Backend** (servicio), **Frontend** (cliente) e **Integración**.
+> El proyecto se construyó siguiendo un ciclo de trabajo con sentido:
+> **cimientos → dominio → núcleo → datos → calidad → extensiones → seguridad → integración.**
+> El núcleo evaluado (interacciones + métricas) se prioriza; lo transversal va después.
+> Los refinamientos iterativos y el uso de IA se documentan con honestidad en [DECISIONS.md §5](./DECISIONS.md).
+>
+> Leyenda: ✅ hecho · 🔄 en curso · ⏳ pendiente/opcional
 
 ---
 
-# Parte 1 — Backend (servicio) · núcleo completo ✅
+# Parte 1 — Backend (servicio)
 
-### 1.1 Fundaciones ✅
-- Monorepo con separación de capas; TypeScript + NestJS 11 + MikroORM 6 + PostgreSQL 16.
+### Fase 1 — Fundaciones ✅
+- Monorepo con separación de capas; **TypeScript + NestJS 11 + MikroORM 6 + PostgreSQL 16** (stack justificado en DECISIONS §1).
 - Config única de MikroORM (app + CLI), `ValidationPipe` global, prefijo `/api`, CORS.
-- Swagger en `/api/docs`; health en `/api/health`; `.env` + `docker-compose`.
+- Swagger en `/api/docs`, health en `/api/health`, `.env`, Dockerfile + docker-compose.
 
-### 1.2 Modelo de datos ✅
-- Entidades `Customer`, `User`, `Call`, `Ticket` (base abstracta), `Disposition`, `AgentAvailability`.
-- Vista de lectura `v_interaction` (`UNION ALL`) para métricas.
-- PK `uuid`, `timestamptz`, índices `(agent_id, opened_at)`/`(opened_at)`/`(status)`. Migraciones aplicadas.
-- Documentado en [docs/DATA-MODEL.md](./docs/DATA-MODEL.md) + diagrama.
+### Fase 2 — Modelo de datos ✅
+- Dominio pensado **para la consulta**: `Customer → User → Call/Ticket` (base abstracta), `Disposition`.
+- **Vista `v_interaction`** (`UNION ALL`) como superficie de lectura de métricas — separa escritura (2 entidades) de lectura (1 vista).
+- PK `uuid`, `timestamptz`, índices `(agent_id, opened_at)`/`(opened_at)`/`(status)`. Migraciones.
+- Documentado en [docs/DATA-MODEL.md](./docs/DATA-MODEL.md) + diagrama. DECISIONS §2.
 
-### 1.3 Autenticación ✅
-- Login JWT `POST /auth/login` (bcryptjs), guard global con `@Public`, Swagger con Authorize.
+### Fase 3 — Gestión de interacciones (must-have) ✅
+- Crear `POST /interactions/{calls,tickets}` (agente + apertura).
+- Ciclo de vida `OPEN→IN_PROGRESS→RESOLVED` con validación de transiciones y `closed_at` al resolver.
+- Listar `GET /interactions` con filtros (agente/estado/tipo/rango) + paginación (sobre la vista).
 
-### 1.4 Usuarios ✅
-- CRUD `/users` (crear/listar+filtros/ver/actualizar/eliminar), protegido, sin filtrar `passwordHash`.
+### Fase 4 — Núcleo: métricas ✅
+- `GET /metrics?from&to[&agentId]`: por agente (total, resueltas, tasa, tiempo promedio) + volumen por día + desglose por tipificación.
+- **Agregación 100% en SQL** sobre `v_interaction`; **zona horaria UTC-5** resuelta en el motor (`AT TIME ZONE`), con límites de rango que usan el índice. DECISIONS §3.
 
-### 1.5 Interacciones ✅
-- Crear `POST /interactions/{calls,tickets}`.
-- Cambiar estado con validación de transiciones (`OPEN→IN_PROGRESS→RESOLVED`, `closed_at` al resolver).
-- Listar `GET /interactions` (filtros agente/estado/tipo/rango + paginación) sobre `v_interaction`.
-- **Simular** `POST /interactions/calls/simulate` (llamadas aleatorias coherentes).
-- **Tipificar** `PATCH /interactions/{calls,tickets}/:id/disposition`.
-- Errores explícitos 400/404/409.
+### Fase 5 — Datos de ejemplo ✅
+- Seed (`npm run seed` → `DatabaseSeeder`): agentes + cientos de interacciones (llamadas y tickets) que cruzan medianoche. Idempotente.
+- Backup (`db/init/01-backup.sql`) restaurado al inicializar Postgres, para ver el sistema poblado desde el primer arranque.
 
-### 1.6 Catálogos ✅
-- `GET /roles`, `GET /customers`, `GET /dispositions`, `GET /agent-availabilities`. Seed de catálogos.
+### Fase 6 — Calidad: errores y pruebas ✅
+- Manejo explícito de errores/entradas inválidas: **400 / 401 / 404 / 409**.
+- **Unit tests** (`npm test`, 11/11): máquina de estados y cálculo de métricas (lógica pura extraída).
+- **e2e** (`bash scripts/test-e2e.sh`, 9/9): flujo completo API+BD, métricas exactas y frontera de medianoche.
+- **Aceptación** (`node scripts/verify.mjs`, 20/20): requisitos + masivo + correctitud API vs BD.
 
-### 1.7 Disponibilidad del agente ✅
-- `AgentAvailability` (catálogo con `can_take_calls`) + `PATCH /users/:id/availability`.
-- ⏳ `AgentAvailabilityLog` (historial) + métricas por franja — opcional.
+### Fase 7 — Extensiones de dominio ✅
+- Catálogos: `GET /roles`, `/customers`, `/dispositions`, `/agent-availabilities`.
+- Tipificación de interacciones (`PATCH .../:id/disposition`) + detalle de ticket (`GET .../tickets/:id`).
+- Disponibilidad del agente (`AgentAvailability` + `PATCH /users/:id/availability`).
+- Simulación de llamadas (`POST /interactions/calls/simulate`).
 
-### 1.8 Métricas (núcleo) ✅
-- `GET /metrics?from&to[&agentId]`: por agente (total, resueltas, tasa, tiempo promedio) + volumen por día.
-- Agregación 100% en SQL; zona horaria UTC-5 en el motor. Verificado (frontera de medianoche).
+### Fase 8 — Seguridad y multi-empresa ✅
+- Login JWT (`POST /auth/login`) + guard global con `@Public`; hash con `bcryptjs`.
+- CRUD de usuarios (`/users`).
+- **Aislamiento por empresa**: el token lleva `customerId` y toda la data (interacciones, métricas, usuarios) se filtra por la empresa del usuario.
 
-### 1.9 Cierre del backend 🔄
-- ✅ Script de aceptación `scripts/verify.mjs` (requisitos + masivo + correctitud API vs BD, 20/20).
-- ✅ **Seed formal** (`npm run seed` → `DatabaseSeeder`): agentes + cientos de interacciones (llamadas y tickets) que cruzan medianoche. Idempotente.
-- ✅ **README** completo (instalar/levantar/probar/endpoints).
-- ✅ **Entrypoint** (backend migra + siembra al arrancar según env) → `docker compose up` desde cero verificado (550 interacciones sin pasos manuales).
-- ✅ Pruebas de integración e2e (`backend/test/app.e2e-spec.ts`, 9/9): auth, ciclo de vida, filtros/paginación, métricas exactas + zona horaria.
-- ✅ Unit tests (`npm test`, 11/11): máquina de estados (`interaction-status`) y cálculo de métricas (`metrics.mapper`), lógica pura extraída y testeada.
-
----
-
-# Parte 2 — Frontend (cliente) 🔄
-
-Stack: **React + Vite + TypeScript + Tailwind v4 + axios**, SPA, portal por rol.
-
-### 2.0 Setup ✅
-- `frontend/` con gateway axios (baseURL por env, Bearer automático, 401 → logout), router, módulos.
-
-### 2.1 Autenticación ✅
-- Login → guarda JWT + usuario → lo adjunta en cada request → rutas protegidas y **guard por rol**.
-
-### 2.2 Vista de interacciones ✅
-- Lista con filtros (agente, estado, tipo, rango) + paginación, reutilizable (`InteractionsPanel`).
-- Estados de **carga** y **error** explícitos (`useAsync` + `Spinner`/`ErrorState`).
-
-### 2.3 Acciones sobre interacciones ✅
-- Botón **Simular llamada**, cambiar estado, tipificar, cambiar disponibilidad del agente.
-
-### 2.4 Dashboard de métricas ✅
-- Selector de rango; tabla por agente (total, resueltas, tasa, tiempo promedio); gráfico de volumen por día.
-
-### 2.5 Pulido + Docker ✅
-- Servicio `frontend` en `docker-compose` (build Vite → nginx), con proxy `/api` → backend.
-- `VITE_API_URL` configurable dev (`localhost:3000/api`) / prod (`/api` mismo origen).
+### Fase 9 — Integración y DX ✅
+- `docker compose up --build` levanta Postgres + backend + frontend (nginx proxy `/api`); el backend migra/siembra según env.
+- README completo, [docs/REQUIREMENTS.md](./docs/REQUIREMENTS.md) (checklist), [docs/TEST-PLAN.md](./docs/TEST-PLAN.md) (guía de prueba).
 
 ---
 
-# Parte 3 — Integración 🔄
-- ✅ `docker compose up --build` levanta Postgres + backend + frontend (nginx proxy `/api`). Verificado end-to-end.
-- ✅ **Pruebas de integración e2e** (Jest + Supertest) contra BD de test aislada, seed determinista: auth, ciclo de vida, filtros/paginación, y **métricas exactas + frontera de medianoche UTC-5**. 9/9. Reproducible: `bash scripts/test-e2e.sh`.
-- ✅ Entrypoint del backend: migración + seed automáticos al arrancar (arranque desde cero verificado, 550 interacciones).
-- ✅ README raíz con el flujo completo de arranque.
+# Parte 2 — Frontend (cliente) ✅
+
+SPA por módulos: **React + Vite + TypeScript + Tailwind + axios**, portal por rol.
+
+- **Fundaciones**: gateway axios (baseURL por env, Bearer, 401→logout), router con guards por rol, hooks (`useAuth`, `useAsync`).
+- **Agente**: workspace con softphone (agenda + llamada animada + wrap-up para tipificar antes de guardar), su disponibilidad y tablero de disponibilidad del equipo, y sus llamadas.
+- **Admin**: dashboard de métricas (KPIs + tabla por agente con drill-down + volumen por día + tipificación), interacciones globales, módulo de tickets (con detalle) y administración de agentes.
+- Estados de **carga** y **error** explícitos en cada consumo.
 
 ---
 
-## Anotado / fuera de alcance
-- Autorización por rol (solo hay autenticación); multi-tenancy real; portal de tickets cara-al-cliente.
-- ✅ `docs/data-model.drawio` regenerado (oscuro, `uuid`, `AgentAvailability`), coherente con el código.
+# Parte 3 — Integración ✅
+- `docker compose up` conecta todo (front → nginx → backend → Postgres), verificado end-to-end y desde un clon limpio.
+
+---
+
+## Pendiente / opcional (no requerido por el enunciado)
+- `AgentAvailabilityLog` (historial de disponibilidad + métricas de ocupación).
+- Autorización por rol (RBAC) a nivel backend (hoy hay autenticación + aislamiento por empresa; la separación de roles es de UI).
