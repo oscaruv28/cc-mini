@@ -23,6 +23,8 @@ interface Props {
   /** Rango de fechas fijo (para cruzar con las métricas del dashboard). */
   from?: string;
   to?: string;
+  /** Si se pasa, cada fila muestra "Ver" para abrir el detalle. */
+  onSelect?: (row: InteractionRow) => void;
 }
 
 export default function InteractionsPanel({
@@ -34,6 +36,7 @@ export default function InteractionsPanel({
   lockedType,
   from,
   to,
+  onSelect,
 }: Props) {
   const [status, setStatus] = useState('');
   const [type, setType] = useState('');
@@ -111,6 +114,7 @@ export default function InteractionsPanel({
                   <th className="px-3 py-2">Apertura</th>
                   <th className="px-3 py-2">Cierre</th>
                   <th className="px-3 py-2">Tipificación</th>
+                  {onSelect && <th className="px-3 py-2">Detalle</th>}
                 </tr>
               </thead>
               <tbody>
@@ -147,10 +151,17 @@ export default function InteractionsPanel({
                         ))}
                       </Select>
                     </td>
+                    {onSelect && (
+                      <td className="px-3 py-2">
+                        <button className="text-xs font-medium text-indigo-600 underline" onClick={() => onSelect(it)}>
+                          Ver
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
                 {data.items.length === 0 && (
-                  <tr><td colSpan={lockedAgentId ? 5 : 6} className="px-3 py-6 text-center text-slate-400">Sin resultados</td></tr>
+                  <tr><td colSpan={(lockedAgentId ? 5 : 6) + (onSelect ? 1 : 0)} className="px-3 py-6 text-center text-slate-400">Sin resultados</td></tr>
                 )}
               </tbody>
             </table>

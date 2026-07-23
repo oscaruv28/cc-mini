@@ -1,5 +1,11 @@
 import { api } from './client';
-import type { InteractionRow, InteractionStatus, InteractionType, Paginated } from '../types';
+import type {
+  InteractionRow,
+  InteractionStatus,
+  InteractionType,
+  Paginated,
+  TicketDetail,
+} from '../types';
 
 export interface InteractionFilters {
   agentId?: string;
@@ -12,6 +18,9 @@ export interface InteractionFilters {
 }
 
 export const interactionsApi = {
+  getTicket: (id: string) =>
+    api.get<TicketDetail>(`/interactions/tickets/${id}`).then((r) => r.data),
+
   list: (filters: InteractionFilters) =>
     api
       .get<Paginated<InteractionRow>>('/interactions', { params: filters })

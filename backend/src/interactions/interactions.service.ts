@@ -150,6 +150,23 @@ export class InteractionsService {
     return { items, total, page, limit, pages: Math.ceil(total / limit) };
   }
 
+  /** Detalle completo de una interacción (con agente y tipificación poblados). */
+  async findDetail(
+    type: InteractionType,
+    id: string,
+    customerId: string,
+  ): Promise<Call | Ticket> {
+    const where = { id, agent: { customer: customerId } } as FilterQuery<Call & Ticket>;
+    const entity =
+      type === InteractionType.CALL
+        ? await this.em.findOne(Call, where, { populate: ['agent', 'disposition'] })
+        : await this.em.findOne(Ticket, where, { populate: ['agent', 'disposition'] });
+    if (!entity) {
+      throw new NotFoundException(`No existe ${type.toLowerCase()} con id ${id}`);
+    }
+    return entity;
+  }
+
   /** Busca la interacción por id y tipo, restringida a la empresa. */
   private async findByType(
     type: InteractionType,

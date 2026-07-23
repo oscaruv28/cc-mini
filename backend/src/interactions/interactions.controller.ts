@@ -76,6 +76,16 @@ export class InteractionsController {
     return this.service.setDisposition(InteractionType.TICKET, id, dto.dispositionId, user.customerId);
   }
 
+  @Get('calls/:id')
+  getCall(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: JwtUser) {
+    return this.service.findDetail(InteractionType.CALL, id, user.customerId);
+  }
+
+  @Get('tickets/:id')
+  getTicket(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: JwtUser) {
+    return this.service.findDetail(InteractionType.TICKET, id, user.customerId);
+  }
+
   @Get()
   list(@Query() query: ListInteractionsQueryDto, @CurrentUser() user: JwtUser) {
     return this.service.list(query, user.customerId);

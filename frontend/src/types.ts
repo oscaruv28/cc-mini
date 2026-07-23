@@ -51,6 +51,19 @@ export interface InteractionRow {
   closedAt: string | null;
 }
 
+export interface TicketDetail {
+  id: string;
+  status: InteractionStatus;
+  subject: string;
+  description?: string | null;
+  priority: string;
+  channel?: string | null;
+  openedAt: string;
+  closedAt?: string | null;
+  agent?: { name: string };
+  disposition?: { label: string } | null;
+}
+
 export interface Paginated<T> {
   items: T[];
   total: number;
