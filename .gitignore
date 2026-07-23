@@ -20,4 +20,4 @@ npm-debug.log*
 Thumbs.db
 
 # snapshots de BD de test (byproduct)
-backend/src/migrations/.snapshot-cc_mini_test.json
+backend/src/migrations/.snapshot-*.json
