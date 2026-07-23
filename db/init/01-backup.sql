@@ -177,7 +177,8 @@ CREATE VIEW public.v_interaction AS
     u.customer_id,
     c.disposition_id,
     c.opened_at,
-    c.closed_at
+    c.closed_at,
+    c.duration_sec
    FROM (public.call c
      JOIN public."user" u ON ((u.id = c.agent_id)))
 UNION ALL
@@ -188,7 +189,8 @@ UNION ALL
     u.customer_id,
     t.disposition_id,
     t.opened_at,
-    t.closed_at
+    t.closed_at,
+    NULL::integer AS duration_sec
    FROM (public.ticket t
      JOIN public."user" u ON ((u.id = t.agent_id)));
 

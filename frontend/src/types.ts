@@ -49,6 +49,7 @@ export interface InteractionRow {
   dispositionId: string | null;
   openedAt: string;
   closedAt: string | null;
+  durationSec?: number | null;
 }
 
 export interface TicketDetail {

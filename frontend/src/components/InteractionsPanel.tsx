@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { interactionsApi, type InteractionFilters } from '../api/interactions.api';
 import { apiError } from '../api/client';
 import { useAsync } from '../hooks/useAsync';
-import { fmtDateTime } from '../utils/format';
+import { fmtDateTime, fmtDuration } from '../utils/format';
 import type { Disposition, InteractionRow, InteractionStatus } from '../types';
 import { Badge, Button, ErrorState, Select, Spinner } from './ui';
 
@@ -113,6 +113,7 @@ export default function InteractionsPanel({
                   {!lockedAgentId && <th className="px-3 py-2">Agente</th>}
                   <th className="px-3 py-2">Apertura</th>
                   <th className="px-3 py-2">Cierre</th>
+                  <th className="px-3 py-2">Duración</th>
                   <th className="px-3 py-2">Tipificación</th>
                   {onSelect && <th className="px-3 py-2">Detalle</th>}
                 </tr>
@@ -139,6 +140,9 @@ export default function InteractionsPanel({
                     {!lockedAgentId && <td className="px-3 py-2">{agentName.get(it.agentId) ?? '—'}</td>}
                     <td className="px-3 py-2 text-slate-500">{fmtDateTime(it.openedAt)}</td>
                     <td className="px-3 py-2 text-slate-500">{fmtDateTime(it.closedAt)}</td>
+                    <td className="px-3 py-2 text-slate-500">
+                      {it.type === 'CALL' ? fmtDuration(it.durationSec ?? null) : '—'}
+                    </td>
                     <td className="px-3 py-2">
                       <Select
                         className="w-40"
@@ -161,7 +165,7 @@ export default function InteractionsPanel({
                   </tr>
                 ))}
                 {data.items.length === 0 && (
-                  <tr><td colSpan={(lockedAgentId ? 5 : 6) + (onSelect ? 1 : 0)} className="px-3 py-6 text-center text-slate-400">Sin resultados</td></tr>
+                  <tr><td colSpan={(lockedAgentId ? 6 : 7) + (onSelect ? 1 : 0)} className="px-3 py-6 text-center text-slate-400">Sin resultados</td></tr>
                 )}
               </tbody>
             </table>
