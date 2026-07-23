@@ -18,6 +18,7 @@ la **decisión y el porqué**, no desde el "hice X".
 
 ## Calidad de código (20%)
 - "**TypeScript** de punta a punta, nombres del dominio, y **manejo de errores explícito**: 400 (datos inválidos), 401 (sin token), 404 (no existe), 409 (transición inválida)."
+- "Además un **filtro global de excepciones** (idiomático de NestJS): respuesta de error consistente (`{statusCode, message, path, timestamp}`), loguea lo inesperado (5xx) y mapea violaciones de unicidad a 409. Preferí el filtro global antes que un decorador que envuelva cada método (ese patrón puede tragarse errores)."
 - "Saqué la **lógica pura a módulos testeables**: la máquina de estados (`interaction-status`) y el cálculo de métricas (`metrics.mapper`)."
 - "Consistencia: un **gateway** único en el front, DTOs con `class-validator`, y una convención por módulo."
 
