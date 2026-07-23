@@ -19,13 +19,7 @@ import {
 import { CreateCallDto } from './dto/create-call.dto';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { ListInteractionsQueryDto } from './dto/list-interactions-query.dto';
-
-/** Transiciones de estado permitidas del ciclo de vida de una interacción. */
-const ALLOWED_TRANSITIONS: Record<InteractionStatus, InteractionStatus[]> = {
-  [InteractionStatus.OPEN]: [InteractionStatus.IN_PROGRESS],
-  [InteractionStatus.IN_PROGRESS]: [InteractionStatus.RESOLVED],
-  [InteractionStatus.RESOLVED]: [],
-};
+import { ALLOWED_TRANSITIONS, canTransition } from './interaction-status';
 
 const pick = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 const randInt = (min: number, max: number): number =>
@@ -105,7 +99,7 @@ export class InteractionsService {
     customerId: string,
   ): Promise<Call | Ticket> {
     const entity = await this.findByType(type, id, customerId);
-    if (!ALLOWED_TRANSITIONS[entity.status].includes(next)) {
+    if (!canTransition(entity.status, next)) {
       throw new ConflictException(
         `Transición inválida: ${entity.status} → ${next}. ` +
           `Permitidas desde ${entity.status}: ${ALLOWED_TRANSITIONS[entity.status].join(', ') || 'ninguna'}.`,

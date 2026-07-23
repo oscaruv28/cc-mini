@@ -50,6 +50,7 @@ El proyecto tiene tres partes: **Backend** (servicio), **Frontend** (cliente) e 
 - ✅ **README** completo (instalar/levantar/probar/endpoints).
 - ✅ **Entrypoint** (backend migra + siembra al arrancar según env) → `docker compose up` desde cero verificado (550 interacciones sin pasos manuales).
 - ✅ Pruebas de integración e2e (`backend/test/app.e2e-spec.ts`, 9/9): auth, ciclo de vida, filtros/paginación, métricas exactas + zona horaria.
+- ✅ Unit tests (`npm test`, 11/11): máquina de estados (`interaction-status`) y cálculo de métricas (`metrics.mapper`), lógica pura extraída y testeada.
 
 ---
 

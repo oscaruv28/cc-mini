@@ -1,14 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { EntityManager } from '@mikro-orm/postgresql';
 import { MetricsQueryDto } from './dto/metrics-query.dto';
+import { mapPerAgent, type RawPerAgent } from './metrics.mapper';
 
-interface PerAgentRow {
-  agentId: string;
-  agentName: string;
-  total: number;
-  resolved: number;
-  avgResolutionSeconds: string | number | null;
-}
 interface DailyRow {
   day: string;
   total: number;
@@ -92,26 +86,12 @@ export class MetricsService {
     if (q.agentId) dispParams.push(q.agentId);
 
     const [perAgentRows, dailyRows, dispRows] = await Promise.all([
-      conn.execute<PerAgentRow[]>(perAgentSql, perAgentParams),
+      conn.execute<RawPerAgent[]>(perAgentSql, perAgentParams),
       conn.execute<DailyRow[]>(dailySql, dailyParams),
       conn.execute<DispRow[]>(dispSql, dispParams),
     ]);
 
-    const perAgent = perAgentRows.map((r) => {
-      const total = Number(r.total);
-      const resolved = Number(r.resolved);
-      const avg =
-        r.avgResolutionSeconds == null ? null : Math.round(Number(r.avgResolutionSeconds));
-      return {
-        agentId: r.agentId,
-        agentName: r.agentName,
-        total,
-        resolved,
-        resolutionRate: total ? Number((resolved / total).toFixed(4)) : 0,
-        avgResolutionSeconds: avg,
-      };
-    });
-
+    const perAgent = mapPerAgent(perAgentRows);
     const dailyVolume = dailyRows.map((r) => ({ day: r.day, total: Number(r.total) }));
     const byDisposition = dispRows.map((r) => ({
       code: r.code,
