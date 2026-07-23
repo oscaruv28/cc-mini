@@ -126,11 +126,23 @@ Usé un asistente de IA para acelerar scaffolding, boilerplate (DTOs, módulos, 
 - **El diagrama `.drawio` se revirtió** al abrirlo en la app; se anotó y no se pisó sin confirmación.
 - **Correctitud de métricas validada a mano:** un script compara la API contra un `SELECT` independiente con ~5k registros, y una prueba de **frontera de medianoche** (llamada de 8pm en Cali) confirma la zona horaria — no se asumió correcto por inspección visual.
 
-## 6. Qué haría distinto con más tiempo o en producción
-- **Autorización por rol (RBAC)** real y **refresh tokens**; hoy hay autenticación pero no control de acceso por rol en el backend.
-- **Multi-tenancy real** (scoping por `Customer`) e índices/partición por fecha si el volumen crece a millones.
-- **`AgentAvailabilityLog`** + métricas de ocupación/adherencia por franja (quedó modelado).
+## 6. Qué haría distinto / alcances futuros
+
+### Evolución de arquitectura (hoy: monolito modular)
+Hoy el backend es un **monolito modular**: un solo servicio NestJS con módulos que separan responsabilidades (`auth`, `users`, `interactions`, `metrics`, `catalog`), entidades centralizadas y capas api/service/domain. Para el alcance de la prueba es la **decisión correcta**: máxima claridad y cero fricción operativa (el enunciado premia lo acotado). Meter microservicios aquí sería sobre-ingeniería.
+
+Con **más escala o equipos**, evolucionaría a servicios detrás de un **API Gateway**:
+- **API Gateway** — punto único de entrada: controla tráfico (rate limiting), enrutamiento, y **centraliza la verificación del JWT** (el criterio de acceso vive ahí, no repartido). Actúa de puente hacia los servicios.
+- **Servicio de Autenticación** — emisión/validación de tokens, usuarios y roles (RBAC).
+- **Servicio Contact Center (core)** — interacciones, tipificación y métricas (la lógica de dominio).
+- (Opcional) separar el **read model de métricas** si la agregación crece mucho.
+
+**Cuándo saltar:** equipos independientes, necesidad de escalar/desplegar por dominio, o aislar fallos. Antes de eso, el monolito modular es más simple y barato — y el diseño actual (un módulo por dominio + vista de lectura + capas) hace que **cada módulo ya sea candidato directo a servicio**, así que la migración sería **incremental, no un rewrite**.
+
+### Otras mejoras
+- **Autorización por rol (RBAC)** y **refresh tokens** (hoy hay autenticación + aislamiento por empresa, pero no control de acceso por rol en el backend).
+- **`AgentAvailabilityLog`** + métricas de ocupación/adherencia por franja (quedó modelado, no construido).
 - **DTOs de respuesta / serialización** explícita (no exponer entidades crudas) y **paginación por cursor** para listados grandes.
-- **Tests unitarios** de la máquina de estados y de la agregación (además de los e2e) y **CI**.
-- **Observabilidad** (logs estructurados, métricas de app), **rate limiting**, y **secretos** fuera del `docker-compose` (vault/variables gestionadas).
-- **Frontend:** React Query (cache/invalidación), manejo de expiración de token, y tests de componentes.
+- **Escala de datos:** índices/particionado por fecha si el volumen crece a millones; pipeline de **CI**.
+- **Observabilidad** (logs estructurados, métricas de app), **rate limiting**, y **secretos** gestionados (fuera del `docker-compose`).
+- **Frontend:** React Query (cache/invalidación) y manejo de expiración de token.
